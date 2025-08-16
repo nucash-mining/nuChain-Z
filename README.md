@@ -21,7 +21,7 @@ A comprehensive blockchain project featuring Z Blockchain (UTXO) and nuChain (Co
 
 ### Key Features
 - **Halving**: Every 210,000,000 blocks (~3.33 years)
-- **Emission Rate**: 60 Z/NU per 10 minutes
+- **Emission Rate**: 50 Z/NU per 10 minutes
 - **Cross-chain**: LayerZero integration for Z ↔ nuChain bridging
 - **Trading**: WATTxchange integration for wBTC-wXMR swaps
 - **Privacy**: Zcash-style shielded transfers with 512-byte memos
