@@ -1,0 +1,51 @@
+{
+  "name": "z-core-wallet",
+  "version": "1.0.0",
+  "description": "Z Core Wallet - Desktop application for Z Blockchain and nuChain",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "dev": "electron . --inspect=9229",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "keywords": [
+    "blockchain",
+    "wallet",
+    "zcash",
+    "privacy",
+    "zk-snark"
+  ],
+  "author": "Z Blockchain Team",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^27.0.0",
+    "electron-builder": "^24.6.4"
+  },
+  "dependencies": {
+    "ws": "^8.14.2",
+    "axios": "^1.5.0"
+  },
+  "build": {
+    "appId": "com.zblockchain.wallet",
+    "productName": "Z Core Wallet",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!node_modules",
+      "!dist"
+    ],
+    "mac": {
+      "category": "public.app-category.finance"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  }
+}

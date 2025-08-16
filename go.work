@@ -1,0 +1,8 @@
+# Go Workspace Configuration
+go 1.21
+
+use (
+    ./z-blockchain
+    ./nuchain
+    ./z-core-wallet
+)
