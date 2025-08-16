@@ -1,6 +1,6 @@
 # Z Blockchain & nuChain Development Project
 
-A comprehensive blockchain project featuring Z Blockchain (UTXO) and nuChain (Cosmos L2 zk-Rollup) with cross-chain capabilities, zk-SNARK mining, and WATTxchange integration.
+A blockchain project featuring Z Blockchain (UTXO) and nuChain (Cosmos L2 zk-Rollup) with cross-chain capabilities, zk-SNARK mining, and WATTxchange integration.
 
 ## Project Overview
 
