@@ -546,6 +546,24 @@ const MiningRigBuilder: React.FC = () => {
       return;
     }
 
+    // Check GPU selection limits
+    const currentGPUs = selectedComponents.filter(c => [4, 5].includes(c.id));
+    const isGPU = [4, 5].includes(component.id);
+    
+    if (isGPU && currentGPUs.length >= 2) {
+      toast.error('Maximum 2 GPUs allowed per mining rig');
+      return;
+    }
+    
+    // Check for duplicate GPU types
+    if (isGPU) {
+      const sameTypeGPU = currentGPUs.find(gpu => gpu.id === component.id);
+      if (sameTypeGPU) {
+        toast.error(`Only 1 ${component.name} allowed per mining rig`);
+        return;
+      }
+    }
+
     setSelectedComponents([...selectedComponents, component]);
     toast.success(`Added ${component.name}`);
   };
@@ -722,21 +740,19 @@ const MiningRigBuilder: React.FC = () => {
         {/* Network Selection & Wallet */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-8 space-y-4 md:space-y-0">
           <div className="flex flex-wrap gap-4">
-            <div className="flex bg-gray-800 rounded-lg p-1 space-x-1">
-              {Object.entries(NETWORKS).map(([key, network]) => (
-                <button
-                  key={key}
-                  onClick={() => switchNetwork(key)}
-                  className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-                    selectedNetwork === key
-                      ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
-                      : 'bg-white/10 text-gray-300 hover:bg-white/20'
-                  }`}
-                >
-                  {network.name}
-                </button>
-              ))}
-            </div>
+            {Object.entries(NETWORKS).map(([key, network]) => (
+              <button
+                key={key}
+                onClick={() => switchNetwork(key)}
+                className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+                  selectedNetwork === key
+                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
+                    : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                }`}
+              >
+                {network.name}
+              </button>
+            ))}
             
             {/* Action Buttons */}
             <button
