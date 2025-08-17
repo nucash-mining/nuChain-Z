@@ -936,10 +936,10 @@ const MiningRigBuilder: React.FC = () => {
             {/* Build Button */}
             <button
               onClick={buildMiningRig}
-              disabled={selectedComponents.length === 0 || isLoading}
+              disabled={selectedComponents.length === 0}
               className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed px-6 py-4 rounded-lg font-semibold text-lg transition-all"
             >
-              {isLoading ? 'Building Rig...' : 'Build Mining Rig'}
+              Configure Mining Rig Contract
             </button>
 
             {/* Network Info */}
