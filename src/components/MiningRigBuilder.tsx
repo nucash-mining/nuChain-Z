@@ -94,9 +94,10 @@ const MiningRigBuilder: React.FC = () => {
   const getContractAddresses = (chainId: number) => {
     if (chainId === 31337) { // Localhost
       try {
-        nftContract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2',
-        wattContract: '0x6645143e49B3a15d8F205658903a55E520444698',
-        stakingContract: '0xe463045318393095F11ed39f1a98332aBCc1A7b1'
+        const nftContract = '0xf9670e5D46834561813CA79854B3d7147BBbFfb2';
+        const wattContract = '0x6645143e49B3a15d8F205658903a55E520444698';
+        const stakingContract = '0xe463045318393095F11ed39f1a98332aBCc1A7b1';
+        const wattToken = wattContract;
         return {
           nftContract: '0x5FbDB2315678afecb367f032d93F642f64180aa3', // deploymentInfo.contracts.genesisBadge,
           wattToken: wattToken, // deploymentInfo.contracts.wattToken,
@@ -146,13 +147,104 @@ const MiningRigBuilder: React.FC = () => {
           tx120Gpu: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 2 },
           gp50Gpu: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 3 },
           genesisBadge: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 2 }
+        },
+        metadata: {
+          1: {
+            name: "Free mint Gaming PC",
+            description: "The basic PC needed to play the Mining Game. Free to mint! This NFT receives Play to Earn Rewards.",
+            external_url: "https://mining.game/nfts/free/",
+            url: "https://api.mining.game/1.json",
+            image: "https://api.mining.game/1.png",
+            image_small: "https://api.mining.game/1.jpg",
+            animation_url: "https://api.mining.game/1.glb",
+            specs: "102200050000000000",
+            attributes: [
+              { trait_type: "Brand", value: "Minga" },
+              { trait_type: "Component", value: "Basic PC" },
+              { trait_type: "Generation", value: "Gen1" },
+              { display_type: "boost_number", trait_type: "Mining Hashpower", value: 2 },
+              { display_type: "boost_number", trait_type: "WATT Usage", value: 5 },
+              { display_type: "boost_number", trait_type: "Stake Weight", value: 1 }
+            ]
+          },
+          2: {
+            name: "Genesis Badge",
+            description: "The exclusive Genesis Badge, increasing luck and efficience with 10%! Only 100 will ever be minted! This NFT receives Play to Earn Rewards.",
+            external_url: "https://mining.game/nfts/genesis-badge/",
+            url: "https://api.mining.game/2.json",
+            image: "https://api.mining.game/2.png",
+            image_small: "https://api.mining.game/2.jpg",
+            animation_url: "https://api.mining.game/2.mp4",
+            specs: "101000000000001010",
+            attributes: [
+              { trait_type: "Component", value: "Badge" },
+              { trait_type: "Generation", value: "Gen1" },
+              { display_type: "boost_percentage", trait_type: "Luck Boost", value: 10 },
+              { display_type: "boost_percentage", trait_type: "Efficiency multiplier", value: 10 },
+              { display_type: "boost_number", trait_type: "Stake Weight", value: 42 }
+            ]
+          },
+          3: {
+            name: "Kirtex XL1 CPU",
+            description: "CPU upgrade for your Gaming PC! This NFT receives Play to Earn Rewards.",
+            external_url: "https://mining.game/nfts/kirtex-xl1-cpu/",
+            url: "https://api.mining.game/3.json",
+            image: "https://api.mining.game/3.png",
+            image_small: "https://api.mining.game/3.jpg",
+            animation_url: "https://api.mining.game/3.glb",
+            specs: "103300070000000000",
+            attributes: [
+              { trait_type: "Brand", value: "Kirtex" },
+              { trait_type: "Component", value: "Processor" },
+              { trait_type: "Generation", value: "Gen1" },
+              { display_type: "boost_number", trait_type: "Mining Hashpower", value: 10 },
+              { display_type: "boost_number", trait_type: "WATT Usage", value: 2 },
+              { display_type: "boost_number", trait_type: "Stake Weight", value: 9 }
+            ]
+          },
+          4: {
+            name: "TX120 GPU",
+            description: "GPU upgrade for your Gaming PC! This NFT receives Play to Earn Rewards.",
+            external_url: "https://mining.game/nfts/oblivia-tx120-gpu/",
+            url: "https://api.mining.game/4.json",
+            image: "https://api.mining.game/4.png",
+            image_small: "https://api.mining.game/4.jpg",
+            animation_url: "https://api.mining.game/4.glb",
+            specs: "104500100000000000",
+            attributes: [
+              { trait_type: "Brand", value: "Oblivia" },
+              { trait_type: "Component", value: "GPU" },
+              { trait_type: "Generation", value: "Gen1" },
+              { display_type: "boost_number", trait_type: "Mining Hashpower", value: 20 },
+              { display_type: "boost_number", trait_type: "WATT Usage", value: 10 },
+              { display_type: "boost_number", trait_type: "Stake Weight", value: 11 }
+            ]
+          },
+          5: {
+            name: "GP50 GPU",
+            description: "A powerful GPU upgrade for your Gaming PC! This NFT receives Play to Earn Rewards.",
+            external_url: "https://mining.game/mad-gp50-gpu/",
+            url: "https://api.mining.game/5.json",
+            image: "https://api.mining.game/5.png",
+            image_small: "https://api.mining.game/5.jpg",
+            animation_url: "https://api.mining.game/5.glb",
+            specs: "104001000160090000",
+            attributes: [
+              { trait_type: "Brand", value: "MAD" },
+              { trait_type: "Component", value: "GPU" },
+              { trait_type: "Generation", value: "Gen1" },
+              { display_type: "boost_number", trait_type: "Mining Hashpower", value: 33 },
+              { display_type: "boost_number", trait_type: "WATT Usage", value: 16 },
+              { display_type: "boost_number", trait_type: "Stake Weight", value: 18 }
+            ]
+          }
         }
       };
-    } else if (chainId === 137) { // Polygon
+    }
+    if (chainId === 137) { // Polygon
       return {
-        nftContract: '0x970a8b10147e3459d3cbf56329b76ac18d329728',
-        wattContract: '0xE960d5076cd3169C343Ee287A2c3380A222e5839',
-        stakingContract: '0xcbfcA68D10B2ec60a0FB2Bc58F7F0Bfd32CD5275'
+        nftContract: '0x970a8b10147e3459d3cbf56329b76ac18d329728', // Mining Game NFTs on Polygon
+        wattToken: '0xE960d5076cd3169C343Ee287A2c3380A222e5839', // WATT token on Polygon
         wattTokenDisplay: '0xE960d5076cd3169C343Ee287A2c3380A222e5839',
         nftStaking: '0x...', // Update with NFT Staking contract on Polygon
         miningRigContract: '0x...', // Will be deployed
@@ -166,10 +258,10 @@ const MiningRigBuilder: React.FC = () => {
         }
       };
     }
+    // Default fallback
     return {
       nftContract: '0x0000000000000000000000000000000000000000',
-        wattContract: '0x0000000000000000000000000000000000000000',
-        stakingContract: '0x0000000000000000000000000000000000000000'
+      wattToken: '0x0000000000000000000000000000000000000000',
       wattTokenDisplay: '0x0000000000000000000000000000000000000000',
       nftStaking: '0x0000000000000000000000000000000000000000',
       miningRigContract: '0x0000000000000000000000000000000000000000',
@@ -1126,9 +1218,6 @@ const MiningRigBuilder: React.FC = () => {
                           <Power className="w-4 h-4" />
                         </button>
                       </div>
-                    <p className="text-xs text-gray-500 mb-2">
-                      NFT Contract: {provider ? getContractAddresses(chainId).nftContract : 'Not connected'}
-                    </p>
                     </div>
                     
                     <div className="space-y-2 text-sm">
