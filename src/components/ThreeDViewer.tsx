@@ -115,12 +115,12 @@ const ThreeDViewer: React.FC<ThreeDViewerProps> = ({
       </Canvas>
       
       {/* 3D Indicator */}
-      <div className="absolute top-2 right-2 bg-purple-600/80 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full">
+      <div className="absolute top-2 right-2 bg-purple-600/80 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full pointer-events-none">
         3D Interactive
       </div>
       
       {/* Controls Hint */}
-      <div className="absolute bottom-2 left-2 bg-black/50 backdrop-blur-sm text-white text-xs px-2 py-1 rounded">
+      <div className="absolute bottom-2 left-2 bg-black/50 backdrop-blur-sm text-white text-xs px-2 py-1 rounded pointer-events-none">
         Click & drag to rotate
       </div>
     </div>
