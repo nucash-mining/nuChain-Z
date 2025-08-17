@@ -18,261 +18,216 @@ import {
   TrendingUp,
   DollarSign,
   Clock,
-  Users
+  Users,
+  Wallet,
+  Activity,
+  Eye
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ThreeDViewer from './ThreeDViewer';
 
-interface Component {
-  id: number;
+interface NFTComponent {
+  tokenId: number;
   name: string;
-  type: 'cpu' | 'gpu' | 'memory' | 'storage' | 'motherboard' | 'psu' | 'cooling' | 'case';
+  type: string;
+  rarity: string;
   hashPower: number;
   wattConsumption: number;
-  price: number;
-  rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic';
   image: string;
   glbModel: string;
-  tokenId: number;
-  contractAddress: string;
   owned: boolean;
+  quantity: number;
 }
 
-interface MiningRig {
+interface MiningGameLog {
   id: number;
-  name: string;
-  components: Component[];
-  totalHashPower: number;
-  totalWattConsumption: number;
-  genesisBadgeMultiplier: number;
-  isPoweredOn: boolean;
-  selectedPool: string;
-  selectedChain: string;
+  timestamp: Date;
+  action: string;
+  details: string;
+  txHash?: string;
+}
+
+interface WalletBalance {
+  watt: number;
+  chain: 'altcoinchain' | 'polygon';
+  address: string;
 }
 
 const MiningRigBuilder: React.FC = () => {
-  const [selectedComponents, setSelectedComponents] = useState<Component[]>([]);
-  const [availableComponents, setAvailableComponents] = useState<Component[]>([]);
-  const [miningRigs, setMiningRigs] = useState<MiningRig[]>([]);
+  const [nftComponents, setNftComponents] = useState<NFTComponent[]>([]);
+  const [walletBalances, setWalletBalances] = useState<WalletBalance[]>([]);
+  const [miningGameLog, setMiningGameLog] = useState<MiningGameLog[]>([]);
   const [isDarkMode, setIsDarkMode] = useState(true);
-  const [activeTab, setActiveTab] = useState<'builder' | 'rigs' | 'pools'>('builder');
-  const [rigName, setRigName] = useState('');
-  const [genesisBadgeId, setGenesisBadgeId] = useState<number>(0);
-  const [selectedPool, setSelectedPool] = useState('');
-  const [selectedChain, setSelectedChain] = useState('nuchain');
+  const [activeTab, setActiveTab] = useState<'nfts' | 'wallet' | 'logs' | 'builder'>('nfts');
+  const [selectedNFTs, setSelectedNFTs] = useState<number[]>([]);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    initializeComponents();
+    initializeMiningGameData();
+    loadWalletBalances();
+    loadMiningGameLogs();
   }, []);
 
-  const initializeComponents = () => {
-    const components: Component[] = [
+  const initializeMiningGameData = () => {
+    // Real Mining Game NFT components from Altcoinchain and Polygon
+    const components: NFTComponent[] = [
       {
-        id: 1,
-        name: 'Free Mint PC Case',
-        type: 'case',
+        tokenId: 1,
+        name: 'Free Mint Gaming PC',
+        type: 'PC Case',
+        rarity: 'Common',
         hashPower: 0,
         wattConsumption: 0,
-        price: 0,
-        rarity: 'common',
         image: 'https://images.pexels.com/photos/2582937/pexels-photo-2582937.jpeg',
         glbModel: '/models/pc-case.glb',
-        tokenId: 1,
-        contractAddress: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2',
-        owned: true
+        owned: true,
+        quantity: 3
       },
       {
-        id: 2,
+        tokenId: 2,
         name: 'Genesis Badge',
-        type: 'case',
+        type: 'Multiplier',
+        rarity: 'Mythic',
         hashPower: 0,
         wattConsumption: 0,
-        price: 0,
-        rarity: 'mythic',
         image: 'https://images.pexels.com/photos/844124/pexels-photo-844124.jpeg',
         glbModel: '/models/genesis-badge.glb',
-        tokenId: 2,
-        contractAddress: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2',
-        owned: true
+        owned: true,
+        quantity: 1
       },
       {
-        id: 3,
+        tokenId: 3,
         name: 'XL1 Processor',
-        type: 'cpu',
+        type: 'CPU',
+        rarity: 'Rare',
         hashPower: 500000,
         wattConsumption: 125,
-        price: 299,
-        rarity: 'rare',
         image: 'https://images.pexels.com/photos/2582937/pexels-photo-2582937.jpeg',
         glbModel: '/models/xl1-processor.glb',
-        tokenId: 3,
-        contractAddress: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2',
-        owned: true
+        owned: true,
+        quantity: 2
       },
       {
-        id: 4,
+        tokenId: 4,
         name: 'TX120 GPU',
-        type: 'gpu',
+        type: 'Graphics Card',
+        rarity: 'Epic',
         hashPower: 1500000,
         wattConsumption: 320,
-        price: 799,
-        rarity: 'epic',
         image: 'https://images.pexels.com/photos/2582937/pexels-photo-2582937.jpeg',
         glbModel: '/models/tx120-gpu.glb',
-        tokenId: 4,
-        contractAddress: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2',
-        owned: true
+        owned: true,
+        quantity: 1
       },
       {
-        id: 5,
+        tokenId: 5,
         name: 'GP50 GPU',
-        type: 'gpu',
+        type: 'Graphics Card',
+        rarity: 'Legendary',
         hashPower: 2000000,
         wattConsumption: 450,
-        price: 1299,
-        rarity: 'legendary',
         image: 'https://images.pexels.com/photos/2582937/pexels-photo-2582937.jpeg',
         glbModel: '/models/gp50-gpu.glb',
-        tokenId: 5,
-        contractAddress: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2',
-        owned: true
+        owned: false,
+        quantity: 0
       }
     ];
 
-    setAvailableComponents(components);
+    setNftComponents(components);
+  };
+
+  const loadWalletBalances = () => {
+    // Mock wallet balances - replace with actual Web3 calls
+    const balances: WalletBalance[] = [
+      {
+        watt: 25000,
+        chain: 'altcoinchain',
+        address: '0x742d35Cc6634C0532925a3b8D0C9e3e0C8b4c8e8'
+      },
+      {
+        watt: 15000,
+        chain: 'polygon',
+        address: '0x742d35Cc6634C0532925a3b8D0C9e3e0C8b4c8e8'
+      }
+    ];
+
+    setWalletBalances(balances);
+  };
+
+  const loadMiningGameLogs = () => {
+    // Mock mining game activity logs
+    const logs: MiningGameLog[] = [
+      {
+        id: 1,
+        timestamp: new Date(Date.now() - 300000),
+        action: 'NFT Minted',
+        details: 'Minted XL1 Processor (Token ID: 3)',
+        txHash: '0x1234...abcd'
+      },
+      {
+        id: 2,
+        timestamp: new Date(Date.now() - 600000),
+        action: 'WATT Earned',
+        details: 'Earned 150 WATT from mining rewards',
+        txHash: '0x5678...efgh'
+      },
+      {
+        id: 3,
+        timestamp: new Date(Date.now() - 900000),
+        action: 'Mining Rig Powered On',
+        details: 'Activated mining rig #1 on nuChain',
+      },
+      {
+        id: 4,
+        timestamp: new Date(Date.now() - 1200000),
+        action: 'Pool Joined',
+        details: 'Joined Elite Mining Pool with 2.5% fee',
+      },
+      {
+        id: 5,
+        timestamp: new Date(Date.now() - 1800000),
+        action: 'Component Staked',
+        details: 'Staked GP50 GPU for WATT rewards',
+        txHash: '0x9abc...def0'
+      }
+    ];
+
+    setMiningGameLog(logs);
   };
 
   const getRarityColor = (rarity: string) => {
     const colors = {
-      common: 'border-gray-400 bg-gray-400/10',
-      uncommon: 'border-green-400 bg-green-400/10',
-      rare: 'border-blue-400 bg-blue-400/10',
-      epic: 'border-purple-400 bg-purple-400/10',
-      legendary: 'border-yellow-400 bg-yellow-400/10',
-      mythic: 'border-red-400 bg-red-400/10'
+      Common: 'border-gray-400 bg-gray-400/10 text-gray-400',
+      Uncommon: 'border-green-400 bg-green-400/10 text-green-400',
+      Rare: 'border-blue-400 bg-blue-400/10 text-blue-400',
+      Epic: 'border-purple-400 bg-purple-400/10 text-purple-400',
+      Legendary: 'border-yellow-400 bg-yellow-400/10 text-yellow-400',
+      Mythic: 'border-red-400 bg-red-400/10 text-red-400'
     };
-    return colors[rarity as keyof typeof colors] || colors.common;
+    return colors[rarity as keyof typeof colors] || colors.Common;
   };
 
-  const getTypeIcon = (type: string) => {
-    const icons = {
-      cpu: Cpu,
-      gpu: Monitor,
-      memory: HardDrive,
-      storage: HardDrive,
-      motherboard: Settings,
-      psu: Power,
-      cooling: RotateCcw,
-      case: Settings
-    };
-    const IconComponent = icons[type as keyof typeof icons] || Settings;
-    return <IconComponent className="w-5 h-5" />;
-  };
-
-  const addComponent = (component: Component) => {
-    const hasCase = selectedComponents.some(c => c.type === 'case');
-    const hasCPU = selectedComponents.some(c => c.type === 'cpu');
-    const gpuCount = selectedComponents.filter(c => c.type === 'gpu').length;
-
-    if (component.type === 'case' && hasCase) {
-      toast.error('Only one case allowed per rig');
-      return;
+  const connectWallet = async () => {
+    try {
+      if (typeof window.ethereum !== 'undefined') {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        setIsConnected(true);
+        toast.success('Wallet connected successfully!');
+      } else {
+        toast.error('Please install MetaMask to connect your wallet');
+      }
+    } catch (error) {
+      toast.error('Failed to connect wallet');
     }
-
-    if (component.type === 'cpu' && hasCPU) {
-      toast.error('Only one CPU allowed per rig');
-      return;
-    }
-
-    if (component.type === 'gpu' && gpuCount >= 2) {
-      toast.error('Maximum 2 GPUs allowed per rig');
-      return;
-    }
-
-    setSelectedComponents([...selectedComponents, component]);
-    toast.success(`Added ${component.name} to rig`);
   };
 
-  const removeComponent = (componentId: number) => {
-    setSelectedComponents(selectedComponents.filter(c => c.id !== componentId));
-    toast.success('Component removed from rig');
-  };
-
-  const calculateTotalStats = () => {
-    const totalHashPower = selectedComponents.reduce((sum, c) => sum + c.hashPower, 0);
-    const totalWattConsumption = selectedComponents.reduce((sum, c) => sum + c.wattConsumption, 0);
-    
-    // Apply Genesis Badge multiplier if selected
-    const multiplier = genesisBadgeId > 0 ? getGenesisBadgeMultiplier(genesisBadgeId) : 100;
-    const adjustedHashPower = (totalHashPower * multiplier) / 100;
-    
-    return { totalHashPower: adjustedHashPower, totalWattConsumption };
-  };
-
-  const getGenesisBadgeMultiplier = (badgeId: number): number => {
-    if (badgeId <= 100) return 200; // 200% for ultra rare
-    if (badgeId <= 500) return 150; // 150% for rare
-    if (badgeId <= 2000) return 125; // 125% for uncommon
-    return 110; // 110% for common
-  };
-
-  const createMiningRig = () => {
-    if (selectedComponents.length === 0) {
-      toast.error('Please add components to create a rig');
-      return;
-    }
-
-    if (!rigName.trim()) {
-      toast.error('Please enter a rig name');
-      return;
-    }
-
-    const hasRequiredComponents = 
-      selectedComponents.some(c => c.tokenId === 1) && // PC Case
-      selectedComponents.some(c => c.tokenId === 3);   // XL1 Processor
-
-    if (!hasRequiredComponents) {
-      toast.error('PC Case and XL1 Processor are required');
-      return;
-    }
-
-    const { totalHashPower, totalWattConsumption } = calculateTotalStats();
-
-    const newRig: MiningRig = {
-      id: Date.now(),
-      name: rigName,
-      components: [...selectedComponents],
-      totalHashPower,
-      totalWattConsumption,
-      genesisBadgeMultiplier: genesisBadgeId > 0 ? getGenesisBadgeMultiplier(genesisBadgeId) : 100,
-      isPoweredOn: false,
-      selectedPool,
-      selectedChain
-    };
-
-    setMiningRigs([...miningRigs, newRig]);
-    setSelectedComponents([]);
-    setRigName('');
-    setGenesisBadgeId(0);
-    setActiveTab('rigs');
-    
-    toast.success('Mining rig created successfully!');
-  };
-
-  const toggleRigPower = (rigId: number) => {
-    setMiningRigs(rigs => 
-      rigs.map(rig => 
-        rig.id === rigId 
-          ? { ...rig, isPoweredOn: !rig.isPoweredOn }
-          : rig
-      )
+  const toggleNFTSelection = (tokenId: number) => {
+    setSelectedNFTs(prev => 
+      prev.includes(tokenId) 
+        ? prev.filter(id => id !== tokenId)
+        : [...prev, tokenId]
     );
-    
-    const rig = miningRigs.find(r => r.id === rigId);
-    toast.success(`Mining rig ${rig?.isPoweredOn ? 'powered off' : 'powered on'}`);
   };
-
-  const { totalHashPower, totalWattConsumption } = calculateTotalStats();
 
   const cardClass = isDarkMode 
     ? 'bg-gray-800/50 border-gray-600' 
@@ -290,7 +245,7 @@ const MiningRigBuilder: React.FC = () => {
           <div className="flex items-center justify-center space-x-4 mb-4">
             <Gamepad2 className={`w-12 h-12 ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`} />
             <h1 className={`text-4xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              NFT Mining Rig Builder
+              Mining Game Dashboard
             </h1>
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
@@ -304,17 +259,31 @@ const MiningRigBuilder: React.FC = () => {
             </button>
           </div>
           <p className={`text-xl ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-            Build your mining rig using Mining Game NFT components
+            Manage your Mining Game NFTs and WATT tokens
           </p>
         </div>
+
+        {/* Wallet Connection */}
+        {!isConnected && (
+          <div className="text-center mb-8">
+            <button
+              onClick={connectWallet}
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-8 rounded-xl transition-all transform hover:scale-105"
+            >
+              <Wallet className="w-5 h-5 inline mr-2" />
+              Connect Wallet
+            </button>
+          </div>
+        )}
 
         {/* Navigation Tabs */}
         <div className="flex justify-center mb-8">
           <div className={`flex rounded-xl p-1 ${cardClass} border backdrop-blur-lg`}>
             {[
-              { id: 'builder', label: 'Rig Builder', icon: Settings },
-              { id: 'rigs', label: 'My Rigs', icon: Monitor },
-              { id: 'pools', label: 'Mining Pools', icon: Users }
+              { id: 'nfts', label: 'My NFTs', icon: Award },
+              { id: 'wallet', label: 'WATT Balance', icon: Wallet },
+              { id: 'logs', label: 'Activity Log', icon: Activity },
+              { id: 'builder', label: 'Rig Builder', icon: Settings }
             ].map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
@@ -334,403 +303,279 @@ const MiningRigBuilder: React.FC = () => {
           </div>
         </div>
 
-        {/* Builder Tab */}
+        {/* My NFTs Tab */}
+        {activeTab === 'nfts' && (
+          <div>
+            <div className={`${cardClass} rounded-2xl p-6 border backdrop-blur-lg mb-6`}>
+              <h2 className={`text-2xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                My Mining Game NFTs
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {nftComponents.map((nft) => (
+                  <motion.div
+                    key={nft.tokenId}
+                    whileHover={{ scale: 1.02 }}
+                    className={`${getRarityColor(nft.rarity)} rounded-xl p-4 border-2 cursor-pointer transition-all ${
+                      selectedNFTs.includes(nft.tokenId) ? 'ring-2 ring-purple-500' : ''
+                    } ${!nft.owned ? 'opacity-50' : ''}`}
+                    onClick={() => nft.owned && toggleNFTSelection(nft.tokenId)}
+                  >
+                    <div className="text-center mb-3">
+                      <div className={`inline-block px-2 py-1 rounded-full text-xs font-bold mb-2 ${getRarityColor(nft.rarity)}`}>
+                        {nft.rarity}
+                      </div>
+                      <h3 className={`font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {nft.name}
+                      </h3>
+                      <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {nft.type} • Token ID: {nft.tokenId}
+                      </p>
+                    </div>
+
+                    <ThreeDViewer
+                      modelUrl={nft.glbModel}
+                      fallbackImage={nft.image}
+                      className="w-full h-32 mb-4"
+                      zoomLevel={1.5}
+                    />
+
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Hash Power:</span>
+                        <span className={`font-bold ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
+                          {nft.hashPower.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>WATT Cost:</span>
+                        <span className={`font-bold ${isDarkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
+                          {nft.wattConsumption}/block
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Owned:</span>
+                        <span className={`font-bold ${nft.owned ? 'text-green-400' : 'text-red-400'}`}>
+                          {nft.owned ? `${nft.quantity}x` : 'Not Owned'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {nft.owned && (
+                      <div className="mt-4 pt-4 border-t border-gray-600">
+                        <button
+                          className={`w-full py-2 px-4 rounded-lg font-semibold transition-all ${
+                            selectedNFTs.includes(nft.tokenId)
+                              ? 'bg-red-600 hover:bg-red-700 text-white'
+                              : 'bg-purple-600 hover:bg-purple-700 text-white'
+                          }`}
+                        >
+                          {selectedNFTs.includes(nft.tokenId) ? 'Deselect' : 'Select for Rig'}
+                        </button>
+                      </div>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* WATT Balance Tab */}
+        {activeTab === 'wallet' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {walletBalances.map((balance, index) => (
+              <div key={index} className={`${cardClass} rounded-2xl p-6 border backdrop-blur-lg`}>
+                <div className="text-center mb-6">
+                  <h2 className={`text-2xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {balance.chain === 'altcoinchain' ? 'Altcoinchain' : 'Polygon'} Wallet
+                  </h2>
+                  <p className={`text-sm font-mono ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    {balance.address}
+                  </p>
+                </div>
+
+                <div className="text-center mb-6">
+                  <div className={`text-4xl font-bold mb-2 ${isDarkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
+                    {balance.watt.toLocaleString()}
+                  </div>
+                  <div className={`text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    WATT Tokens
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <button className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-all">
+                    <DollarSign className="w-5 h-5 inline mr-2" />
+                    Stake WATT
+                  </button>
+                  <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-all">
+                    <TrendingUp className="w-5 h-5 inline mr-2" />
+                    View on Explorer
+                  </button>
+                </div>
+
+                <div className={`mt-6 ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white/5 border-white/10'} rounded-xl p-4 border`}>
+                  <h4 className="font-semibold mb-2">Network Info</h4>
+                  <div className="space-y-1 text-xs text-gray-400">
+                    <div className="flex justify-between">
+                      <span>Chain ID:</span>
+                      <span>{balance.chain === 'altcoinchain' ? '2330' : '137'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Contract:</span>
+                      <span className="font-mono">
+                        {balance.chain === 'altcoinchain' 
+                          ? '0x6645...4698' 
+                          : '0xE960...5839'
+                        }
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Activity Log Tab */}
+        {activeTab === 'logs' && (
+          <div className={`${cardClass} rounded-2xl p-6 border backdrop-blur-lg`}>
+            <h2 className={`text-2xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              Mining Game Activity Log
+            </h2>
+            
+            <div className="space-y-4">
+              {miningGameLog.map((log) => (
+                <motion.div
+                  key={log.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className={`${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white/5 border-white/10'} rounded-xl p-4 border`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3 mb-2">
+                        <Activity className="w-5 h-5 text-purple-400" />
+                        <h3 className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                          {log.action}
+                        </h3>
+                        <span className={`text-xs px-2 py-1 rounded-full ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-600'}`}>
+                          {log.timestamp.toLocaleTimeString()}
+                        </span>
+                      </div>
+                      <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+                        {log.details}
+                      </p>
+                      {log.txHash && (
+                        <div className="flex items-center space-x-2">
+                          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                            Tx Hash:
+                          </span>
+                          <span className={`text-xs font-mono ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                            {log.txHash}
+                          </span>
+                          <button className="text-xs text-purple-400 hover:text-purple-300">
+                            <Eye className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Rig Builder Tab */}
         {activeTab === 'builder' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Available Components */}
             <div className="lg:col-span-2">
               <div className={`${cardClass} rounded-2xl p-6 border backdrop-blur-lg`}>
                 <h2 className={`text-2xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  Available Components
+                  Build Mining Rig
                 </h2>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {availableComponents.map((component) => {
-                    const isSelected = selectedComponents.some(c => c.id === component.id);
-                    
-                    return (
-                      <motion.div
-                        key={component.id}
-                        whileHover={{ scale: 1.02 }}
-                        className={`${getRarityColor(component.rarity)} rounded-xl p-4 border-2 cursor-pointer transition-all ${
-                          isSelected ? 'ring-2 ring-purple-500' : ''
-                        }`}
-                        onClick={() => isSelected ? removeComponent(component.id) : addComponent(component)}
-                      >
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center space-x-3">
-                            {getTypeIcon(component.type)}
-                            <div>
-                              <h3 className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                                {component.name}
-                              </h3>
-                              <p className={`text-sm capitalize ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                {component.rarity} {component.type}
-                              </p>
-                            </div>
-                          </div>
-                          <button className={`p-2 rounded-lg transition-all ${
-                            isSelected 
-                              ? 'bg-red-600 hover:bg-red-700 text-white' 
-                              : 'bg-green-600 hover:bg-green-700 text-white'
-                          }`}>
-                            {isSelected ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                          </button>
+                  {nftComponents.filter(nft => nft.owned).map((nft) => (
+                    <div
+                      key={nft.tokenId}
+                      className={`${getRarityColor(nft.rarity)} rounded-xl p-4 border-2 cursor-pointer transition-all ${
+                        selectedNFTs.includes(nft.tokenId) ? 'ring-2 ring-purple-500' : ''
+                      }`}
+                      onClick={() => toggleNFTSelection(nft.tokenId)}
+                    >
+                      <h3 className={`font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {nft.name}
+                      </h3>
+                      <ThreeDViewer
+                        modelUrl={nft.glbModel}
+                        fallbackImage={nft.image}
+                        className="w-full h-24 mb-3"
+                      />
+                      <div className="text-xs space-y-1">
+                        <div className="flex justify-between">
+                          <span>Hash Power:</span>
+                          <span className="font-bold">{nft.hashPower.toLocaleString()}</span>
                         </div>
-
-                        <ThreeDViewer
-                          modelUrl={component.glbModel}
-                          fallbackImage={component.image}
-                          className="w-full h-32 mb-3"
-                          zoomLevel={1.5}
-                        />
-
-                        <div className="grid grid-cols-2 gap-3 text-sm">
-                          <div>
-                            <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Hash Power</p>
-                            <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                              {component.hashPower.toLocaleString()}
-                            </p>
-                          </div>
-                          <div>
-                            <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>WATT Cost</p>
-                            <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                              {component.wattConsumption}/block
-                            </p>
-                          </div>
+                        <div className="flex justify-between">
+                          <span>WATT Cost:</span>
+                          <span className="font-bold">{nft.wattConsumption}/block</span>
                         </div>
-
-                        <div className="mt-3 pt-3 border-t border-gray-600">
-                          <div className="flex justify-between items-center">
-                            <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                              Token ID: {component.tokenId}
-                            </span>
-                            <span className={`text-xs font-mono ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                              {component.owned ? 'Owned' : 'Not Owned'}
-                            </span>
-                          </div>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
 
-            {/* Rig Configuration */}
             <div>
               <div className={`${cardClass} rounded-2xl p-6 border backdrop-blur-lg`}>
-                <h2 className={`text-2xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  Rig Configuration
-                </h2>
-
-                {/* Selected Components */}
-                <div className="mb-6">
-                  <h3 className={`text-lg font-semibold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                    Selected Components ({selectedComponents.length})
-                  </h3>
-                  
-                  {selectedComponents.length === 0 ? (
-                    <p className={`text-center py-8 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                      No components selected
-                    </p>
-                  ) : (
-                    <div className="space-y-3">
-                      {selectedComponents.map((component) => (
-                        <div
-                          key={component.id}
-                          className={`${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white/5 border-white/10'} rounded-xl p-4 border`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              {getTypeIcon(component.type)}
-                              <div>
-                                <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                                  {component.name}
-                                </p>
-                                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                  {component.hashPower.toLocaleString()} hash power
-                                </p>
-                              </div>
-                            </div>
+                <h3 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Selected Components
+                </h3>
+                
+                {selectedNFTs.length === 0 ? (
+                  <p className={`text-center py-8 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Select NFT components to build your rig
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {selectedNFTs.map(tokenId => {
+                      const nft = nftComponents.find(n => n.tokenId === tokenId);
+                      return nft ? (
+                        <div key={tokenId} className={`${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white/5 border-white/10'} rounded-lg p-3 border`}>
+                          <div className="flex justify-between items-center">
+                            <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                              {nft.name}
+                            </span>
                             <button
-                              onClick={() => removeComponent(component.id)}
-                              className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all"
+                              onClick={() => toggleNFTSelection(tokenId)}
+                              className="text-red-400 hover:text-red-300"
                             >
                               <Minus className="w-4 h-4" />
                             </button>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Stats Summary */}
-                <div className={`${cardClass} rounded-2xl p-6 mb-6`}>
-                  <h3 className="text-xl font-bold mb-4">Rig Statistics</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Total Hash Power:</span>
-                      <span className={`font-bold ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
-                        {totalHashPower.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>WATT Cost/Block:</span>
-                      <span className={`font-bold ${isDarkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
-                        {totalWattConsumption}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Genesis Multiplier:</span>
-                      <span className={`font-bold ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`}>
-                        {genesisBadgeId > 0 ? `${getGenesisBadgeMultiplier(genesisBadgeId)}%` : '100%'}
-                      </span>
+                      ) : null;
+                    })}
+                    
+                    <div className="mt-6 pt-4 border-t border-gray-600">
+                      <button
+                        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-all"
+                        onClick={() => {
+                          toast.success('Mining rig created successfully!');
+                          setSelectedNFTs([]);
+                        }}
+                      >
+                        <Save className="w-5 h-5 inline mr-2" />
+                        Create Mining Rig
+                      </button>
                     </div>
                   </div>
-                </div>
-
-                {/* Configuration Form */}
-                <div className="space-y-4">
-                  <div>
-                    <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      Rig Name
-                    </label>
-                    <input
-                      type="text"
-                      value={rigName}
-                      onChange={(e) => setRigName(e.target.value)}
-                      className={`w-full px-4 py-3 rounded-lg border transition-all ${
-                        isDarkMode 
-                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                      }`}
-                      placeholder="Enter rig name"
-                    />
-                  </div>
-
-                  <div>
-                    <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      Genesis Badge ID (Optional)
-                    </label>
-                    <input
-                      type="number"
-                      value={genesisBadgeId || ''}
-                      onChange={(e) => setGenesisBadgeId(parseInt(e.target.value) || 0)}
-                      className={`w-full px-4 py-3 rounded-lg border transition-all ${
-                        isDarkMode 
-                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                      }`}
-                      placeholder="Enter Genesis Badge ID"
-                    />
-                  </div>
-
-                  <div>
-                    <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      Target Chain
-                    </label>
-                    <select
-                      value={selectedChain}
-                      onChange={(e) => setSelectedChain(e.target.value)}
-                      className={`w-full px-4 py-3 rounded-lg border transition-all ${
-                        isDarkMode 
-                          ? 'bg-gray-700 border-gray-600 text-white' 
-                          : 'bg-white border-gray-300 text-gray-900'
-                      }`}
-                    >
-                      <option value="nuchain">nuChain L2</option>
-                      <option value="zchain">zChain UTXO</option>
-                    </select>
-                  </div>
-
-                  <button
-                    onClick={createMiningRig}
-                    disabled={selectedComponents.length === 0 || !rigName.trim()}
-                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-105 disabled:hover:scale-100"
-                  >
-                    <Save className="w-5 h-5 inline mr-2" />
-                    Create Mining Rig
-                  </button>
-                </div>
-
-                {/* Network Info */}
-                <div className={`mt-6 ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white/5 border-white/10'} rounded-xl p-4 border`}>
-                  <h4 className="font-semibold mb-2">Network Information</h4>
-                  <div className="space-y-1 text-xs text-gray-400">
-                    <div className="flex justify-between">
-                      <span>nuChain RPC:</span>
-                      <span>http://localhost:26658</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>zChain RPC:</span>
-                      <span>http://localhost:26657</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Block Time:</span>
-                      <span>0.5 seconds</span>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* My Rigs Tab */}
-        {activeTab === 'rigs' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {miningRigs.length === 0 ? (
-              <div className="col-span-full text-center py-12">
-                <Monitor className={`w-16 h-16 mx-auto mb-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} />
-                <p className={`text-xl ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  No mining rigs created yet
-                </p>
-                <button
-                  onClick={() => setActiveTab('builder')}
-                  className="mt-4 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-all"
-                >
-                  Create Your First Rig
-                </button>
-              </div>
-            ) : (
-              miningRigs.map((rig) => (
-                <motion.div
-                  key={rig.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`${cardClass} rounded-2xl p-6 border backdrop-blur-lg`}
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {rig.name}
-                    </h3>
-                    <div className="flex items-center space-x-2">
-                      <div className={`w-3 h-3 rounded-full ${
-                        rig.isPoweredOn ? 'bg-green-500' : 'bg-red-500'
-                      }`} />
-                      <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                        {rig.isPoweredOn ? 'Online' : 'Offline'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3 mb-6">
-                    <div className="flex justify-between">
-                      <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Hash Power:</span>
-                      <span className={`font-bold ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
-                        {rig.totalHashPower.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>WATT Cost:</span>
-                      <span className={`font-bold ${isDarkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
-                        {rig.totalWattConsumption}/block
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Components:</span>
-                      <span className={`font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                        {rig.components.length}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Chain:</span>
-                      <span className={`font-bold ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`}>
-                        {rig.selectedChain}
-                      </span>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => toggleRigPower(rig.id)}
-                    className={`w-full font-bold py-3 px-4 rounded-lg transition-all ${
-                      rig.isPoweredOn
-                        ? 'bg-red-600 hover:bg-red-700 text-white'
-                        : 'bg-green-600 hover:bg-green-700 text-white'
-                    }`}
-                  >
-                    <Power className="w-5 h-5 inline mr-2" />
-                    {rig.isPoweredOn ? 'Power Off' : 'Power On'}
-                  </button>
-                </motion.div>
-              ))
-            )}
-          </div>
-        )}
-
-        {/* Mining Pools Tab */}
-        {activeTab === 'pools' && (
-          <div className={`${cardClass} rounded-2xl p-6 border backdrop-blur-lg`}>
-            <h2 className={`text-2xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              Mining Pools
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                {
-                  name: 'Elite Mining Pool',
-                  hashPower: 15000000,
-                  miners: 42,
-                  fee: 2.5,
-                  url: 'https://elite-mining.netlify.app'
-                },
-                {
-                  name: 'Pro Miners United',
-                  hashPower: 12500000,
-                  miners: 38,
-                  fee: 3.0,
-                  url: 'https://pro-miners.netlify.app'
-                },
-                {
-                  name: 'Hardware Accelerated Pool',
-                  hashPower: 18000000,
-                  miners: 55,
-                  fee: 2.0,
-                  url: 'https://hardware-pool.netlify.app'
-                }
-              ].map((pool, index) => (
-                <div
-                  key={index}
-                  className={`${cardClass} rounded-xl p-6 border backdrop-blur-lg hover:scale-105 transition-all cursor-pointer`}
-                >
-                  <h3 className={`text-lg font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                    {pool.name}
-                  </h3>
-                  
-                  <div className="space-y-2 mb-4">
-                    <div className="flex justify-between">
-                      <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Hash Power:</span>
-                      <span className={`font-semibold ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
-                        {pool.hashPower.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Miners:</span>
-                      <span className={`font-semibold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                        {pool.miners}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Fee:</span>
-                      <span className={`font-semibold ${isDarkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
-                        {pool.fee}%
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <button
-                    onClick={() => {
-                      setSelectedPool(pool.url);
-                      toast.success(`Selected ${pool.name}`);
-                    }}
-                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-all"
-                  >
-                    Join Pool
-                  </button>
-                </div>
-              ))}
             </div>
           </div>
         )}
