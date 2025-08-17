@@ -38,11 +38,12 @@ const NFTMiningRigs: React.FC = () => {
 
   // NFT Contract addresses on Polygon (from WATTxchange repository)
   const nftContracts = {
-    pcCase: '0x970a8b10147e3459d3cbf56329b76ac18d329728/1',
-    xl1Processor: '0x970a8b10147e3459d3cbf56329b76ac18d329728/3',
-    tx120Gpu: '0x970a8b10147e3459d3cbf56329b76ac18d329728/4',
-    gp50Gpu: '0x970a8b10147e3459d3cbf56329b76ac18d329728/5',
-    genesisBadge: '0x970a8b10147e3459d3cbf56329b76ac18d329728/2'
+    // Altcoinchain Mining Game contracts
+    pcCase: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2/1',
+    xl1Processor: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2/3',
+    tx120Gpu: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2/4',
+    gp50Gpu: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2/5',
+    genesisBadge: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2/2'
   };
 
   const myNFTs: NFTComponent[] = [

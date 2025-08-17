@@ -16,15 +16,18 @@ async function main() {
   let MINING_GAME_BASE_CONTRACT;
   
   if (network.chainId === 2330) {
-    // Altcoinchain addresses
-    WATT_TOKEN_ADDRESS = "0x..."; // Update with actual WATT token address on Altcoinchain
-    GENESIS_BADGE_ADDRESS = "0x..."; // Update with actual Genesis Badge address
-    MINING_GAME_BASE_CONTRACT = "0x..."; // Update with Mining Game contract on Altcoinchain
+    // Altcoinchain addresses (from Mining Game)
+    WATT_TOKEN_ADDRESS = "0x6645143e49B3a15d8F205658903a55E520444698"; // WATT token on Altcoinchain
+    GENESIS_BADGE_ADDRESS = "0xf9670e5D46834561813CA79854B3d7147BBbFfb2"; // Mining Game NFTs contract
+    MINING_GAME_BASE_CONTRACT = "0xf9670e5D46834561813CA79854B3d7147BBbFfb2"; // Mining Game NFT contract
+    NFT_STAKING_CONTRACT = "0xe463045318393095F11ed39f1a98332aBCc1A7b1"; // NFT Staking contract
+    NFT_STAKING_CONTRACT = "0xe463045318393095F11ed39f1a98332aBCc1A7b1"; // NFT Staking contract
   } else if (network.chainId === 137) {
     // Polygon addresses
     WATT_TOKEN_ADDRESS = "0x..."; // Update with actual WATT token address on Polygon
-    GENESIS_BADGE_ADDRESS = "0x970a8b10147e3459d3cbf56329b76ac18d329728"; // From WATTxchange repo
-    MINING_GAME_BASE_CONTRACT = "0x970a8b10147e3459d3cbf56329b76ac18d329728"; // From WATTxchange repo
+    GENESIS_BADGE_ADDRESS = "0x970a8b10147e3459d3cbf56329b76ac18d329728"; // Polygon contract
+    MINING_GAME_BASE_CONTRACT = "0x970a8b10147e3459d3cbf56329b76ac18d329728"; // Polygon contract
+    NFT_STAKING_CONTRACT = "0x..."; // Update with NFT Staking contract on Polygon
   } else {
     // Local/testnet - deploy mock tokens
     console.log("Deploying mock tokens for testing...");
@@ -69,28 +72,30 @@ async function main() {
   
   // Add some approved component contracts (mock addresses for testing)
   const mockComponentContracts = [
-    MINING_GAME_BASE_CONTRACT || "0x970a8b10147e3459d3cbf56329b76ac18d329728", // Mining Game contract
-    "0x1111111111111111111111111111111111111111", // Additional component contracts
-    "0x2222222222222222222222222222222222222222",
-    "0x3333333333333333333333333333333333333333",
+    MINING_GAME_BASE_CONTRACT, // Real Mining Game contract
+    NFT_STAKING_CONTRACT, // NFT Staking contract
   ];
   
   for (const contractAddr of mockComponentContracts) {
-    await nftMiningRig.addApprovedComponentContract(contractAddr);
-    console.log("Added approved component contract:", contractAddr);
+    if (contractAddr) {
+      await nftMiningRig.addApprovedComponentContract(contractAddr);
+      console.log("Added approved component contract:", contractAddr);
+    }
   }
   
-  // Set component values for testing
-  await nftMiningRig.setComponentValues(1, "GP50 GPU", 2000000, 450); // Legendary GPU
-  await nftMiningRig.setComponentValues(1, "TX120 GPU", 1500000, 320); // Epic GPU
-  await nftMiningRig.setComponentValues(0, "XL1 Processor", 500000, 125); // Rare CPU
-  await nftMiningRig.setComponentValues(7, "Free Mint PC Case", 0, 0); // Common Case
+  // Set component values based on real Mining Game NFTs
+  await nftMiningRig.setComponentValues(1, "GP50 GPU", 2000000, 450); // Token ID 5 - Legendary GPU
+  await nftMiningRig.setComponentValues(1, "TX120 GPU", 1500000, 320); // Token ID 4 - Epic GPU  
+  await nftMiningRig.setComponentValues(0, "XL1 Processor", 500000, 125); // Token ID 3 - Rare CPU
+  await nftMiningRig.setComponentValues(7, "Free Mint PC Case", 0, 0); // Token ID 1 - Common Case
+  await nftMiningRig.setComponentValues(7, "Genesis Badge", 0, 0); // Token ID 2 - Mythic Boost
   console.log("Set initial component values");
   
   console.log("\n=== Deployment Summary ===");
   console.log("Network:", network.name, "(Chain ID:", network.chainId + ")");
+  console.log("Mining Game NFTs:", MINING_GAME_BASE_CONTRACT);
+  console.log("NFT Staking:", NFT_STAKING_CONTRACT);
   console.log("WATT Token:", WATT_TOKEN_ADDRESS);
-  console.log("Genesis Badge:", GENESIS_BADGE_ADDRESS);
   console.log("NFT Mining Rig:", nftMiningRig.address);
   console.log("Mining Pool Operator:", miningPoolOperator.address);
   

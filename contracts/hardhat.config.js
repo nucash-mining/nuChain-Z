@@ -15,10 +15,10 @@ module.exports = {
   networks: {
     // Altcoinchain configuration
     altcoinchain: {
-      url: process.env.ALTCOINCHAIN_RPC || "https://rpc.altcoinchain.network",
+      url: process.env.ALTCOINCHAIN_RPC || "https://rpc.altcoinchain.network", // Update with actual RPC when provided
       chainId: 2330,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      gasPrice: 20000000000, // 20 gwei
+      gasPrice: 1000000000, // 1 gwei (adjust based on Altcoinchain requirements)
     },
     // Polygon configuration
     polygon: {

@@ -287,19 +287,54 @@ contract NFTMiningRig is ERC721, ERC721Enumerable, Ownable, ReentrancyGuard {
     function _getComponentData(
         address _contractAddress,
         uint256 _tokenId
-    ) internal view returns (ComponentData memory) {
-        // This would interface with the actual Mining Game NFT contracts
-        // For now, return mock data - replace with actual contract calls
+    ) internal pure returns (ComponentData memory) {
+        // Real component data based on Altcoinchain Mining Game contracts
+        // Contract: 0xf9670e5D46834561813CA79854B3d7147BBbFfb2
         
         ComponentData memory component;
         component.contractAddress = _contractAddress;
         component.tokenId = _tokenId;
-        component.componentType = ComponentType.GPU; // Would be determined from contract
-        component.hashPower = 1000000; // Would be calculated from component stats
-        component.wattConsumption = 250; // Would be from component power consumption
-        component.name = "RTX 4090"; // Would be from component metadata
-        component.glbFile = "/models/rtx4090.glb"; // Would be from metadata
         component.isActive = true;
+        
+        // Map token IDs to actual Mining Game components
+        if (_tokenId == 1) { // PC Case
+            component.componentType = ComponentType.CASE;
+            component.hashPower = 0;
+            component.wattConsumption = 0;
+            component.name = "Free Mint PC Case";
+            component.glbFile = "/models/pc-case.glb";
+        } else if (_tokenId == 2) { // Genesis Badge
+            component.componentType = ComponentType.CASE; // Special boost item
+            component.hashPower = 0; // Multiplier, not direct hash power
+            component.wattConsumption = 0;
+            component.name = "Genesis Badge";
+            component.glbFile = "/models/genesis-badge.glb";
+        } else if (_tokenId == 3) { // XL1 Processor
+            component.componentType = ComponentType.CPU;
+            component.hashPower = 500000; // 0.5 MH/s base
+            component.wattConsumption = 125; // 125W
+            component.name = "XL1 Processor";
+            component.glbFile = "/models/xl1-processor.glb";
+        } else if (_tokenId == 4) { // TX120 GPU
+            component.componentType = ComponentType.GPU;
+            component.hashPower = 1500000; // 1.5 MH/s
+            component.wattConsumption = 320; // 320W
+            component.name = "TX120 GPU";
+            component.glbFile = "/models/tx120-gpu.glb";
+        } else if (_tokenId == 5) { // GP50 GPU
+            component.componentType = ComponentType.GPU;
+            component.hashPower = 2000000; // 2.0 MH/s
+            component.wattConsumption = 450; // 450W
+            component.name = "GP50 GPU";
+            component.glbFile = "/models/gp50-gpu.glb";
+        } else {
+            // Default component
+            component.componentType = ComponentType.CASE;
+            component.hashPower = 0;
+            component.wattConsumption = 0;
+            component.name = "Unknown Component";
+            component.glbFile = "/models/default.glb";
+        }
         
         return component;
     }

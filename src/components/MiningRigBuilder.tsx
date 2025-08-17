@@ -80,10 +80,26 @@ const MiningRigBuilder: React.FC = () => {
 
   // NFT Contract addresses from WATTxchange repository
   const getContractAddresses = (chainId: number) => {
-    if (chainId === 137) { // Polygon
+    if (chainId === 2330) { // Altcoinchain
       return {
-        nftContract: '0x970a8b10147e3459d3cbf56329b76ac18d329728', // Base contract address
+        nftContract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', // Mining Game NFTs
+        wattToken: '0x6645143e49B3a15d8F205658903a55E520444698', // WATT token
+        nftStaking: '0xe463045318393095F11ed39f1a98332aBCc1A7b1', // NFT Staking contract
+        miningRigContract: '0x...', // Will be deployed
+        miningPoolContract: '0x...', // Will be deployed
+        components: {
+          pcCase: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 1 },
+          xl1Processor: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 3 },
+          tx120Gpu: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 4 },
+          gp50Gpu: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 5 },
+          genesisBadge: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 2 }
+        }
+      };
+    } else if (chainId === 137) { // Polygon
+      return {
+        nftContract: '0x970a8b10147e3459d3cbf56329b76ac18d329728', // Polygon contract
         wattToken: '0x...', // Update with actual WATT token address on Polygon
+        nftStaking: '0x...', // Update with NFT Staking contract on Polygon
         miningRigContract: '0x...', // Will be deployed
         miningPoolContract: '0x...', // Will be deployed
         components: {
@@ -92,21 +108,6 @@ const MiningRigBuilder: React.FC = () => {
           tx120Gpu: { contract: '0x970a8b10147e3459d3cbf56329b76ac18d329728', tokenId: 4 },
           gp50Gpu: { contract: '0x970a8b10147e3459d3cbf56329b76ac18d329728', tokenId: 5 },
           genesisBadge: { contract: '0x970a8b10147e3459d3cbf56329b76ac18d329728', tokenId: 2 }
-        }
-      };
-    } else if (chainId === 2330) { // Altcoinchain
-      return {
-        nftContract: '0x...', // Update with Altcoinchain addresses
-        wattToken: '0x...', // Update with actual WATT token address on Altcoinchain
-        miningRigContract: '0x...', // Will be deployed
-        miningPoolContract: '0x...', // Will be deployed
-        components: {
-          // Altcoinchain component addresses (update when available)
-          pcCase: { contract: '0x...', tokenId: 1 },
-          xl1Processor: { contract: '0x...', tokenId: 3 },
-          tx120Gpu: { contract: '0x...', tokenId: 4 },
-          gp50Gpu: { contract: '0x...', tokenId: 5 },
-          genesisBadge: { contract: '0x...', tokenId: 2 }
         }
       };
     }
@@ -172,7 +173,7 @@ const MiningRigBuilder: React.FC = () => {
         id: 'pc-case-1',
         name: 'Free Mint PC Case',
         type: 'PC Case',
-        contract: addresses.components.pcCase.contract + '/' + addresses.components.pcCase.tokenId,
+        contract: `${addresses.components.pcCase.contract}/${addresses.components.pcCase.tokenId}`,
         contractAddress: addresses.components.pcCase.contract,
         tokenId: addresses.components.pcCase.tokenId,
         rarity: 'Common',
@@ -182,13 +183,13 @@ const MiningRigBuilder: React.FC = () => {
         wattConsumption: 0,
         slots: 4,
         glbFile: '/models/pc-case.glb',
-        image: '/images/pc-case.jpg'
+        image: 'https://images.pexels.com/photos/2582937/pexels-photo-2582937.jpeg'
       },
       {
         id: 'xl1-proc-1',
         name: 'XL1 Processor',
         type: 'Processor',
-        contract: addresses.components.xl1Processor.contract + '/' + addresses.components.xl1Processor.tokenId,
+        contract: `${addresses.components.xl1Processor.contract}/${addresses.components.xl1Processor.tokenId}`,
         contractAddress: addresses.components.xl1Processor.contract,
         tokenId: addresses.components.xl1Processor.tokenId,
         rarity: 'Rare',
@@ -198,13 +199,13 @@ const MiningRigBuilder: React.FC = () => {
         wattConsumption: 125,
         cores: 8,
         glbFile: '/models/xl1-processor.glb',
-        image: '/images/xl1-processor.jpg'
+        image: 'https://images.pexels.com/photos/163100/circuit-circuit-board-resistor-computer-163100.jpeg'
       },
       {
         id: 'tx120-gpu-1',
         name: 'TX120 GPU',
         type: 'Graphics Card',
-        contract: addresses.components.tx120Gpu.contract + '/' + addresses.components.tx120Gpu.tokenId,
+        contract: `${addresses.components.tx120Gpu.contract}/${addresses.components.tx120Gpu.tokenId}`,
         contractAddress: addresses.components.tx120Gpu.contract,
         tokenId: addresses.components.tx120Gpu.tokenId,
         rarity: 'Epic',
@@ -214,13 +215,13 @@ const MiningRigBuilder: React.FC = () => {
         wattConsumption: 320,
         vram: '12GB',
         glbFile: '/models/tx120-gpu.glb',
-        image: '/images/tx120-gpu.jpg'
+        image: 'https://images.pexels.com/photos/1029757/pexels-photo-1029757.jpeg'
       },
       {
         id: 'gp50-gpu-1',
         name: 'GP50 GPU',
         type: 'Graphics Card',
-        contract: addresses.components.gp50Gpu.contract + '/' + addresses.components.gp50Gpu.tokenId,
+        contract: `${addresses.components.gp50Gpu.contract}/${addresses.components.gp50Gpu.tokenId}`,
         contractAddress: addresses.components.gp50Gpu.contract,
         tokenId: addresses.components.gp50Gpu.tokenId,
         rarity: 'Legendary',
@@ -230,13 +231,13 @@ const MiningRigBuilder: React.FC = () => {
         wattConsumption: 450,
         vram: '24GB',
         glbFile: '/models/gp50-gpu.glb',
-        image: '/images/gp50-gpu.jpg'
+        image: 'https://images.pexels.com/photos/1029757/pexels-photo-1029757.jpeg'
       },
       {
         id: 'genesis-badge-1',
         name: 'Genesis Badge',
         type: 'Boost Item',
-        contract: addresses.components.genesisBadge.contract + '/' + addresses.components.genesisBadge.tokenId,
+        contract: `${addresses.components.genesisBadge.contract}/${addresses.components.genesisBadge.tokenId}`,
         contractAddress: addresses.components.genesisBadge.contract,
         tokenId: addresses.components.genesisBadge.tokenId,
         rarity: 'Mythic',
@@ -246,7 +247,7 @@ const MiningRigBuilder: React.FC = () => {
         wattConsumption: 0,
         special: 'Overclocks all components',
         glbFile: '/models/genesis-badge.glb',
-        image: '/images/genesis-badge.jpg'
+        image: 'https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg'
       }
     ];
     
@@ -514,16 +515,16 @@ const MiningRigBuilder: React.FC = () => {
               <p className="text-sm text-yellow-400">WATT Balance: {parseFloat(wattBalance).toLocaleString()}</p>
               <div className="flex space-x-2">
                 <button
-                  onClick={() => switchNetwork(137)}
-                  className={`px-3 py-1 rounded text-xs ${chainId === 137 ? 'bg-purple-600' : 'bg-gray-600 hover:bg-gray-700'}`}
-                >
-                  Polygon
-                </button>
-                <button
                   onClick={() => switchNetwork(2330)}
                   className={`px-3 py-1 rounded text-xs ${chainId === 2330 ? 'bg-purple-600' : 'bg-gray-600 hover:bg-gray-700'}`}
                 >
                   Altcoinchain
+                </button>
+                <button
+                  onClick={() => switchNetwork(137)}
+                  className={`px-3 py-1 rounded text-xs ${chainId === 137 ? 'bg-purple-600' : 'bg-gray-600 hover:bg-gray-700'}`}
+                >
+                  Polygon
                 </button>
               </div>
             </div>
