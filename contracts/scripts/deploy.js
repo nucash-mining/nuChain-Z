@@ -38,12 +38,12 @@ async function main() {
     WATT_TOKEN_ADDRESS = mockWATT.address;
     console.log("Mock WATT Token deployed to:", WATT_TOKEN_ADDRESS);
     
-    const MockERC721 = await ethers.getContractFactory("MockERC721");
-    const mockGenesisBadge = await MockERC721.deploy("Genesis Badge", "GENESIS");
-    await mockGenesisBadge.deployed();
-    GENESIS_BADGE_ADDRESS = mockGenesisBadge.address;
-    MINING_GAME_BASE_CONTRACT = mockGenesisBadge.address;
-    console.log("Mock Genesis Badge deployed to:", GENESIS_BADGE_ADDRESS);
+    const MockERC1155 = await ethers.getContractFactory("MockERC1155");
+    const mockMiningGame = await MockERC1155.deploy();
+    await mockMiningGame.deployed();
+    GENESIS_BADGE_ADDRESS = mockMiningGame.address;
+    MINING_GAME_BASE_CONTRACT = mockMiningGame.address;
+    console.log("Mock Mining Game NFTs deployed to:", GENESIS_BADGE_ADDRESS);
   }
   
   // Deploy NFTMiningRig contract
