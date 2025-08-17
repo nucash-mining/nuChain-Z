@@ -156,6 +156,74 @@ func (k Keeper) BridgeToZChain(ctx sdk.Context, recipient string, amount sdk.Int
 	return k.layerZeroClient.SendMessage("z-blockchain-1", payload)
 }
 
+// ProcessZChainMessage handles messages from zChain
+func (k Keeper) ProcessZChainMessage(ctx sdk.Context, messageType string, payload []byte) error {
+	switch messageType {
+	case "zchain_mining_reward":
+		return k.processZChainMiningReward(ctx, payload)
+	case "block_sync":
+		return k.processBlockSync(ctx, payload)
+	default:
+		return fmt.Errorf("unknown zChain message type: %s", messageType)
+	}
+}
+
+// processZChainMiningReward processes mining reward notifications from zChain
+func (k Keeper) processZChainMiningReward(ctx sdk.Context, payload []byte) error {
+	var data map[string]interface{}
+	if err := json.Unmarshal(payload, &data); err != nil {
+		return err
+	}
+	
+	miner := data["miner"].(string)
+	reward := data["reward"].(string)
+	hardwareId := data["hardware_id"].(string)
+	blockHeight := int64(data["block_height"].(float64))
+	
+	k.logger.Info("Received zChain mining reward notification",
+		"miner", miner,
+		"reward", reward,
+		"hardware_id", hardwareId,
+		"zchain_block_height", blockHeight,
+		"nuchain_block_height", ctx.BlockHeight())
+	
+	// Update mining statistics or trigger additional rewards
+	return k.updateCrossChainMiningStats(ctx, miner, reward, hardwareId)
+}
+
+// processBlockSync handles block synchronization from zChain
+func (k Keeper) processBlockSync(ctx sdk.Context, payload []byte) error {
+	var data map[string]interface{}
+	if err := json.Unmarshal(payload, &data); err != nil {
+		return err
+	}
+	
+	zchainHeight := int64(data["block_height"].(float64))
+	zchainTime := int64(data["timestamp"].(float64))
+	difficulty := uint64(data["difficulty"].(float64))
+	
+	k.logger.Info("Block synchronization from zChain",
+		"zchain_height", zchainHeight,
+		"nuchain_height", ctx.BlockHeight(),
+		"time_diff", ctx.BlockTime().Unix()-zchainTime,
+		"difficulty", difficulty)
+	
+	// Adjust nuChain parameters based on zChain performance if needed
+	return nil
+}
+
+// updateCrossChainMiningStats updates mining statistics from cross-chain data
+func (k Keeper) updateCrossChainMiningStats(ctx sdk.Context, miner string, reward string, hardwareId string) error {
+	// Store cross-chain mining data for analytics and additional reward calculations
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix("cross_chain_mining"))
+	
+	key := fmt.Sprintf("%s:%d", miner, ctx.BlockHeight())
+	value := fmt.Sprintf("%s:%s:%d", reward, hardwareId, ctx.BlockTime().Unix())
+	
+	store.Set([]byte(key), []byte(value))
+	return nil
+}
+
 // PreparePublicInputs creates public inputs for zk-proof verification
 func (k Keeper) PreparePublicInputs(header *storetypes.Context, difficulty uint64, miner sdk.AccAddress) []byte {
 	data := make([]byte, 0, 64+8+20)

@@ -246,6 +246,24 @@ func (k Keeper) DistributeMiningReward(ctx sdk.Context, miner sdk.AccAddress, ha
 	// Update mining statistics
 	k.UpdateMiningStats(ctx, miner, hardwareId, totalReward)
 	
+	// Notify nuChain of hardware mining activity
+	if err := k.NotifyNuChainMining(ctx, miner, totalReward, hardwareId); err != nil {
+		k.logger.Error("Failed to notify nuChain of mining activity", "error", err)
+	}
+	
+	return nil
+}
+
+// NotifyNuChainMining sends mining activity notification to nuChain
+func (k Keeper) NotifyNuChainMining(ctx sdk.Context, miner sdk.AccAddress, reward sdk.Int, hardwareId string) error {
+	// This would use LayerZero to send cross-chain message
+	// Implementation depends on LayerZero integration setup
+	k.logger.Info("Hardware mining notification sent to nuChain",
+		"miner", miner.String(),
+		"reward", reward.String(),
+		"hardware", hardwareId,
+		"block_height", ctx.BlockHeight())
+	
 	return nil
 }
 

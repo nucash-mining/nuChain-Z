@@ -17,6 +17,7 @@ import (
 	
 	// Hypothetical zk-SNARK library
 	cysic "github.com/cysic-labs/zk-sdk-go"
+	layerzero "github.com/layerzerolabs/lz-sdk-go"
 )
 
 type Keeper struct {
@@ -26,6 +27,10 @@ type Keeper struct {
 	paramstore paramtypes.Subspace
 	bankKeeper types.BankKeeper
 	logger     log.Logger
+	
+	// Cross-chain messaging
+	layerZeroClient *layerzero.Client
+	nuChainEndpoint string
 }
 
 func NewKeeper(
@@ -35,9 +40,17 @@ func NewKeeper(
 	ps paramtypes.Subspace,
 	bankKeeper types.BankKeeper,
 	logger log.Logger,
+	layerZeroEndpoint string,
+	nuChainEndpoint string,
 ) *Keeper {
 	if !ps.HasKeyTable() {
 		ps = ps.WithKeyTable(types.ParamKeyTable())
+	}
+
+	// Initialize LayerZero client
+	layerZeroClient, err := layerzero.NewClient(layerZeroEndpoint)
+	if err != nil {
+		panic(fmt.Sprintf("failed to initialize LayerZero client: %v", err))
 	}
 
 	return &Keeper{
@@ -47,6 +60,8 @@ func NewKeeper(
 		paramstore: ps,
 		bankKeeper: bankKeeper,
 		logger:     logger,
+		layerZeroClient: layerZeroClient,
+		nuChainEndpoint: nuChainEndpoint,
 	}
 }
 
@@ -74,6 +89,43 @@ func (k Keeper) MineBlock(ctx sdk.Context, miner sdk.AccAddress, proof []byte) e
 	return k.DistributeReward(ctx, miner)
 }
 
+// NotifyNuChain sends mining reward notification to nuChain
+func (k Keeper) NotifyNuChain(ctx sdk.Context, miner sdk.AccAddress, reward sdk.Int, hardwareId string) error {
+	payload := map[string]interface{}{
+		"type":         "zchain_mining_reward",
+		"miner":        miner.String(),
+		"reward":       reward.String(),
+		"hardware_id":  hardwareId,
+		"block_height": ctx.BlockHeight(),
+		"timestamp":    ctx.BlockTime().Unix(),
+	}
+	
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+	
+	// Send to nuChain via LayerZero
+	return k.layerZeroClient.SendMessage(k.nuChainEndpoint, payloadBytes)
+}
+
+// SynchronizeWithNuChain coordinates block production timing
+func (k Keeper) SynchronizeWithNuChain(ctx sdk.Context) error {
+	syncPayload := map[string]interface{}{
+		"type":         "block_sync",
+		"block_height": ctx.BlockHeight(),
+		"block_time":   ctx.BlockTime().Unix(),
+		"difficulty":   k.GetDifficulty(ctx),
+	}
+	
+	payloadBytes, err := json.Marshal(syncPayload)
+	if err != nil {
+		return err
+	}
+	
+	return k.layerZeroClient.SendMessage(k.nuChainEndpoint, payloadBytes)
+}
+
 // DistributeReward calculates and distributes mining rewards
 func (k Keeper) DistributeReward(ctx sdk.Context, miner sdk.AccAddress) error {
 	reward := k.CalculateReward(ctx.BlockHeight())
@@ -88,6 +140,12 @@ func (k Keeper) DistributeReward(ctx sdk.Context, miner sdk.AccAddress) error {
 	return k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, miner, coins)
 }
 
+	
+	// Notify nuChain of mining reward
+	if err := k.NotifyNuChain(ctx, miner, reward); err != nil {
+		k.logger.Error("Failed to notify nuChain of mining reward", "error", err)
+		// Don't fail the transaction, just log the error
+	}
 // CalculateReward implements halving mechanism
 func (k Keeper) CalculateReward(height int64) sdk.Int {
 	halvingInterval := int64(210000000) // 210M blocks
