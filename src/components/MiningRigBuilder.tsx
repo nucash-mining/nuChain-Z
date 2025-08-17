@@ -99,6 +99,7 @@ const MiningRigBuilder: React.FC = () => {
         return {
           nftContract: deploymentInfo.contracts.genesisBadge,
           wattToken: deploymentInfo.contracts.wattToken,
+          wattTokenDisplay: deploymentInfo.contracts.wattToken,
           nftStaking: deploymentInfo.contracts.genesisBadge, // Use same for testing
           miningRigContract: deploymentInfo.contracts.nftMiningRig,
           miningPoolContract: deploymentInfo.contracts.miningPoolOperator,
@@ -116,6 +117,7 @@ const MiningRigBuilder: React.FC = () => {
         return {
           nftContract: '0x5FbDB2315678afecb367f032d93F642f64180aa3', // Default hardhat address
           wattToken: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
+          wattTokenDisplay: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
           nftStaking: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
           miningRigContract: '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0',
           miningPoolContract: '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9',
@@ -133,29 +135,31 @@ const MiningRigBuilder: React.FC = () => {
       return {
         nftContract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', // Mining Game NFTs
         wattToken: '0x6645143e49B3a15d8F205658903a55E520444698', // WATT token
+        wattTokenDisplay: '0x6645143e49B3a15d8F205658903a55E520444698',
         nftStaking: '0xe463045318393095F11ed39f1a98332aBCc1A7b1', // NFT Staking contract
         miningRigContract: '0x...', // Will be deployed
         miningPoolContract: '0x...', // Will be deployed
         components: {
-          pcCase: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 1 },
-          xl1Processor: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 3 },
-          tx120Gpu: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 4 },
-          gp50Gpu: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 5 },
+          pcCase: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 4 },
+          xl1Processor: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 1 },
+          tx120Gpu: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 2 },
+          gp50Gpu: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 3 },
           genesisBadge: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 2 }
         }
       };
     } else if (chainId === 137) { // Polygon
       return {
         nftContract: '0x970a8b10147e3459d3cbf56329b76ac18d329728', // Mining Game NFTs on Polygon
-        wattToken: '0x...', // Update with actual WATT token address on Polygon
+        wattToken: '0xE960d5076cd3169C343Ee287A2c3380A222e5839', // WATT token on Polygon
+        wattTokenDisplay: '0xE960d5076cd3169C343Ee287A2c3380A222e5839',
         nftStaking: '0x...', // Update with NFT Staking contract on Polygon
         miningRigContract: '0x...', // Will be deployed
         miningPoolContract: '0x...', // Will be deployed
         components: {
-          pcCase: { contract: '0x970a8b10147e3459d3cbf56329b76ac18d329728', tokenId: 1 },
-          xl1Processor: { contract: '0x970a8b10147e3459d3cbf56329b76ac18d329728', tokenId: 3 },
-          tx120Gpu: { contract: '0x970a8b10147e3459d3cbf56329b76ac18d329728', tokenId: 4 },
-          gp50Gpu: { contract: '0x970a8b10147e3459d3cbf56329b76ac18d329728', tokenId: 5 },
+          pcCase: { contract: '0x970a8b10147e3459d3cbf56329b76ac18d329728', tokenId: 4 },
+          xl1Processor: { contract: '0x970a8b10147e3459d3cbf56329b76ac18d329728', tokenId: 1 },
+          tx120Gpu: { contract: '0x970a8b10147e3459d3cbf56329b76ac18d329728', tokenId: 2 },
+          gp50Gpu: { contract: '0x970a8b10147e3459d3cbf56329b76ac18d329728', tokenId: 3 },
           genesisBadge: { contract: '0x970a8b10147e3459d3cbf56329b76ac18d329728', tokenId: 2 }
         }
       };
@@ -244,7 +248,7 @@ const MiningRigBuilder: React.FC = () => {
         id: 'pc-case-1',
         name: 'Free Mint PC Case',
         type: 'PC Case',
-        contract: `${addresses.components.pcCase.contract}/${addresses.components.pcCase.tokenId}`,
+        contract: `${addresses.components.pcCase.contract}`,
         contractAddress: addresses.components.pcCase.contract,
         tokenId: addresses.components.pcCase.tokenId,
         rarity: 'Common',
@@ -260,7 +264,7 @@ const MiningRigBuilder: React.FC = () => {
         id: 'xl1-proc-1',
         name: 'XL1 Processor',
         type: 'Processor',
-        contract: `${addresses.components.xl1Processor.contract}/${addresses.components.xl1Processor.tokenId}`,
+        contract: `${addresses.components.xl1Processor.contract}`,
         contractAddress: addresses.components.xl1Processor.contract,
         tokenId: addresses.components.xl1Processor.tokenId,
         rarity: 'Rare',
@@ -276,7 +280,7 @@ const MiningRigBuilder: React.FC = () => {
         id: 'tx120-gpu-1',
         name: 'TX120 GPU',
         type: 'Graphics Card',
-        contract: `${addresses.components.tx120Gpu.contract}/${addresses.components.tx120Gpu.tokenId}`,
+        contract: `${addresses.components.tx120Gpu.contract}`,
         contractAddress: addresses.components.tx120Gpu.contract,
         tokenId: addresses.components.tx120Gpu.tokenId,
         rarity: 'Epic',
@@ -292,7 +296,7 @@ const MiningRigBuilder: React.FC = () => {
         id: 'gp50-gpu-1',
         name: 'GP50 GPU',
         type: 'Graphics Card',
-        contract: `${addresses.components.gp50Gpu.contract}/${addresses.components.gp50Gpu.tokenId}`,
+        contract: `${addresses.components.gp50Gpu.contract}`,
         contractAddress: addresses.components.gp50Gpu.contract,
         tokenId: addresses.components.gp50Gpu.tokenId,
         rarity: 'Legendary',
@@ -308,7 +312,7 @@ const MiningRigBuilder: React.FC = () => {
         id: 'genesis-badge-1',
         name: 'Genesis Badge',
         type: 'Boost Item',
-        contract: `${addresses.components.genesisBadge.contract}/${addresses.components.genesisBadge.tokenId}`,
+        contract: `${addresses.components.genesisBadge.contract}`,
         contractAddress: addresses.components.genesisBadge.contract,
         tokenId: addresses.components.genesisBadge.tokenId,
         rarity: 'Mythic',
@@ -326,12 +330,127 @@ const MiningRigBuilder: React.FC = () => {
     const componentsWithMetadata = await Promise.all(
       components.map(async (component) => {
         try {
-          // Get metadata URI from contract
-          const metadataUri = await miningGameContract.uri(component.tokenId);
+          let metadataUri;
+          let metadata;
+          let ipfsImage;
           
           // Skip metadata fetch for localhost/mock contracts
           if (chainId === 31337) {
-            return {
+            metadata = { name: component.name, description: `Mock ${component.type}` };
+            ipfsImage = component.image;
+          } else {
+            // Use direct IPFS links for real metadata
+            const ipfsLinks = {
+              1: 'https://ipfs.io/ipfs/bafybeic2timfsoxuq7nhtrajny6hanukrrcsau5vs4u3x77wxxpuew4eq4/1', // XL1 Processor
+              2: 'https://ipfs.io/ipfs/bafybeic2timfsoxuq7nhtrajny6hanukrrcsau5vs4u3x77wxxpuew4eq4/2', // TX120 GPU
+              3: 'https://ipfs.io/ipfs/bafybeic2timfsoxuq7nhtrajny6hanukrrcsau5vs4u3x77wxxpuew4eq4/3', // GP50 GPU
+              4: 'https://ipfs.io/ipfs/bafybeic2timfsoxuq7nhtrajny6hanukrrcsau5vs4u3x77wxxpuew4eq4/4'  // PC Case
+            };
+            
+            metadataUri = ipfsLinks[component.tokenId] || await miningGameContract.uri(component.tokenId);
+            
+            // Fetch metadata from IPFS
+            const response = await fetch(metadataUri);
+            metadata = await response.json();
+            
+            // Get image from metadata
+            ipfsImage = metadata.image ? metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/') : component.image;
+          }
+          
+          // Get component specs from contract (skip for localhost)
+          let specs;
+          if (chainId !== 31337) {
+            try {
+              specs = await miningGameContract._specs(component.tokenId);
+            } catch (error) {
+              console.warn(`Could not load specs for token ${component.tokenId}:`, error);
+            }
+          }
+          
+          return {
+            ...component,
+            metadata,
+            ipfsImage,
+            description: metadata.description || `${component.type} component for mining rigs`,
+            attributes: metadata.attributes || [
+              { trait_type: 'Type', value: component.type },
+              { trait_type: 'Rarity', value: component.rarity }
+            ],
+            specs
+          };
+        } catch (error) {
+          console.error(`Failed to load metadata for component ${component.tokenId}:`, error);
+          return {
+            ...component,
+            metadata: { name: component.name, description: `${component.type} component` },
+            ipfsImage: component.image,
+            description: `${component.type} component for mining rigs`,
+            attributes: [
+              { trait_type: 'Type', value: component.type },
+              { trait_type: 'Rarity', value: component.rarity }
+            ]
+          };
+        }
+      })
+    );
+    
+    setAvailableComponents(componentsWithMetadata);
+    setLoadingMetadata(false);
+  };
+
+  const loadUserData = async () => {
+    if (!nftMiningRigContract || !account) return;
+    
+    try {
+      setIsLoading(true);
+      
+      // Use sample configured rigs data for now (replace with contract calls when deployed)
+      const sampleRigs: MiningRig[] = [
+        {
+          id: 1,
+          name: 'Alpha Mining Rig',
+          components: [
+            { type: 'PC Case', name: 'Free Mint PC Case' },
+            { type: 'Processor', name: 'XL1 Processor' },
+            { type: 'Graphics Card', name: 'TX120 GPU' },
+            { type: 'Boost Item', name: 'Genesis Badge' }
+          ],
+          totalHashPower: 1875000, // 187.5 MH/s in hash units
+          totalWattConsumption: 612,
+          genesisBadgeMultiplier: 150,
+          isPoweredOn: true,
+          efficiency: '0.31 MH/W',
+          status: 'mining',
+          pool: 'Beta Mining Pool',
+          earnings: '2.47 WATT/day'
+        },
+        {
+          id: 2,
+          name: 'Beta Mining Rig',
+          components: [
+            { type: 'PC Case', name: 'Free Mint PC Case' },
+            { type: 'Processor', name: 'XL1 Processor' },
+            { type: 'Graphics Card', name: 'GP50 GPU' }
+          ],
+          totalHashPower: 2250000, // 225 MH/s in hash units
+          totalWattConsumption: 575,
+          genesisBadgeMultiplier: 100,
+          isPoweredOn: false,
+          efficiency: '0.39 MH/W',
+          status: 'idle',
+          pool: undefined,
+          earnings: '0 WATT/day'
+        }
+      ];
+      
+      setUserRigs(sampleRigs);
+      
+    } catch (error) {
+      console.error('Failed to load user data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
               ...component,
               metadata: { name: component.name, description: `Mock ${component.type}` },
               ipfsImage: component.image,
@@ -684,7 +803,15 @@ const MiningRigBuilder: React.FC = () => {
           {account && (
             <div className="flex justify-center items-center space-x-4 mt-4">
               <p className="text-sm text-gray-400">Connected: {account.slice(0, 6)}...{account.slice(-4)}</p>
-              <p className="text-sm text-yellow-400">WATT Balance: {parseFloat(wattBalance).toLocaleString()}</p>
+              <div className="text-center">
+                <p className="text-sm text-yellow-400">WATT Balance: {parseFloat(wattBalance).toLocaleString()}</p>
+                <p className="text-xs text-gray-500 font-mono">
+                  {(() => {
+                    const addresses = getContractAddresses(chainId);
+                    return addresses?.wattTokenDisplay || 'Contract not found';
+                  })()}
+                </p>
+              </div>
               <div className="flex space-x-2">
                 <button
                   onClick={() => switchNetwork(2330)}
@@ -825,6 +952,9 @@ const MiningRigBuilder: React.FC = () => {
                         <div className="pt-2 mt-2 border-t border-gray-700">
                           <p className="text-xs text-gray-500 font-mono">
                             Token ID: {component.tokenId}
+                          </p>
+                          <p className="text-xs text-gray-500 font-mono">
+                            Contract: {component.contractAddress.slice(0, 10)}...{component.contractAddress.slice(-6)}
                           </p>
                         </div>
                       </div>
