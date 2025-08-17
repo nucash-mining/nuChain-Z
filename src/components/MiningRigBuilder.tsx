@@ -128,9 +128,17 @@ const MiningRigBuilder: React.FC = () => {
   const initializeWeb3 = async () => {
     if (typeof window.ethereum !== 'undefined') {
       try {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
         const accounts = await provider.send('eth_requestAccounts', []);
         const network = await provider.getNetwork();
+        
+        // Create provider with network config to prevent ENS errors
+        const networkConfig = {
+          chainId: network.chainId,
+          name: network.chainId === 2330 ? 'altcoinchain' : network.chainId === 137 ? 'polygon' : 'unknown',
+          ensAddress: null // Disable ENS to prevent UNSUPPORTED_OPERATION errors
+        };
+        
+        const provider = new ethers.providers.Web3Provider(window.ethereum, networkConfig);
         
         setProvider(provider);
         setAccount(accounts[0]);
