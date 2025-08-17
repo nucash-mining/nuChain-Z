@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
-import { Upload, Cpu, HardDrive, MemoryStick, Zap, Settings, Power, Plus, Trash2, Monitor, Award } from 'lucide-react';
+import { Upload, Cpu, HardDrive, MemoryStick, Zap, Settings, Power, Plus, Trash2, Monitor, Award, Loader } from 'lucide-react';
 
 // Contract ABIs (simplified - you'll need the full ABIs)
 const NFT_MINING_RIG_ABI = [
@@ -22,6 +22,12 @@ const WATT_TOKEN_ABI = [
   "function allowance(address owner, address spender) external view returns (uint256)"
 ];
 
+const MINING_GAME_ABI = [
+  "function uri(uint256 id) external view returns (string memory)",
+  "function balanceOf(address account, uint256 id) external view returns (uint256)",
+  "function _specs(uint256 id) external view returns (uint256)"
+];
+
 interface Component {
   id: string;
   name: string;
@@ -40,6 +46,10 @@ interface Component {
   special?: string;
   glbFile?: string;
   image?: string;
+  metadata?: any;
+  ipfsImage?: string;
+  description?: string;
+  attributes?: any[];
 }
 
 interface MiningRig {
@@ -77,6 +87,8 @@ const MiningRigBuilder: React.FC = () => {
   const [poolName, setPoolName] = useState('');
   const [poolUrl, setPoolUrl] = useState('');
   const [poolFee, setPoolFee] = useState(2.5);
+  const [loadingMetadata, setLoadingMetadata] = useState(false);
+  const [miningGameContract, setMiningGameContract] = useState<ethers.Contract | null>(null);
 
   // NFT Contract addresses from WATTxchange repository
   const getContractAddresses = (chainId: number) => {
@@ -121,7 +133,7 @@ const MiningRigBuilder: React.FC = () => {
   useEffect(() => {
     if (account && chainId) {
       loadUserData();
-      loadAvailableComponents();
+      loadAvailableComponentsWithMetadata();
     }
   }, [account, chainId]);
 
@@ -154,6 +166,14 @@ const MiningRigBuilder: React.FC = () => {
         
         const signer = configuredProvider.getSigner();
         
+        // Initialize Mining Game contract for metadata
+        const gameContract = new ethers.Contract(
+          network.chainId === 2330 ? '0xf9670e5D46834561813CA79854B3d7147BBbFfb2' : '0x970a8b10147e3459d3cbf56329b76ac18d329728',
+          MINING_GAME_ABI,
+          configuredProvider
+        );
+        setMiningGameContract(gameContract);
+        
         // Initialize contracts
         const nftContract = new ethers.Contract(addresses.miningRigContract, NFT_MINING_RIG_ABI, signer);
         const poolContract = new ethers.Contract(addresses.miningPoolContract, MINING_POOL_ABI, signer);
@@ -173,7 +193,11 @@ const MiningRigBuilder: React.FC = () => {
     }
   };
 
-  const loadAvailableComponents = () => {
+  const loadAvailableComponentsWithMetadata = async () => {
+    if (!miningGameContract) return;
+    
+    setLoadingMetadata(true);
+    
     const addresses = getContractAddresses(chainId);
     if (!addresses) return;
 
@@ -261,7 +285,36 @@ const MiningRigBuilder: React.FC = () => {
       }
     ];
     
-    setAvailableComponents(components);
+    // Load metadata for each component
+    const componentsWithMetadata = await Promise.all(
+      components.map(async (component) => {
+        try {
+          // Get metadata URI from contract
+          const metadataUri = await miningGameContract.uri(component.tokenId);
+          
+          // Fetch metadata from IPFS
+          const response = await fetch(metadataUri.replace('ipfs://', 'https://ipfs.io/ipfs/'));
+          const metadata = await response.json();
+          
+          // Get component specs from contract
+          const specs = await miningGameContract._specs(component.tokenId);
+          
+          return {
+            ...component,
+            metadata,
+            ipfsImage: metadata.image ? metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/') : component.image,
+            description: metadata.description || '',
+            attributes: metadata.attributes || []
+          };
+        } catch (error) {
+          console.error(`Failed to load metadata for component ${component.tokenId}:`, error);
+          return component; // Return original component if metadata fails
+        }
+      })
+    );
+    
+    setAvailableComponents(componentsWithMetadata);
+    setLoadingMetadata(false);
   };
 
   const loadUserData = async () => {
@@ -656,11 +709,30 @@ const MiningRigBuilder: React.FC = () => {
                           </span>
                         </div>
                         
-                        <div className="w-full h-32 bg-gray-800 rounded-lg mb-3 flex items-center justify-center">
-                          <Icon className="w-12 h-12 text-gray-600" />
+                        <div className="w-full h-32 bg-gray-800 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+                          {loadingMetadata ? (
+                            <Loader className="w-8 h-8 text-gray-400 animate-spin" />
+                          ) : component.ipfsImage ? (
+                            <img 
+                              src={component.ipfsImage} 
+                              alt={component.name}
+                              className="w-full h-full object-cover rounded-lg"
+                              onError={(e) => {
+                                // Fallback to icon if image fails to load
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                              }}
+                            />
+                          ) : null}
+                          <Icon className={`w-12 h-12 text-gray-600 ${component.ipfsImage ? 'hidden' : ''}`} />
                         </div>
                         
                         <h3 className="font-semibold mb-2">{component.name}</h3>
+                        
+                        {component.description && (
+                          <p className="text-xs text-gray-400 mb-2 line-clamp-2">{component.description}</p>
+                        )}
+                        
                         <div className="text-sm text-gray-300 space-y-1">
                           <div className="flex justify-between">
                             <span>Hash Rate:</span>
@@ -685,17 +757,36 @@ const MiningRigBuilder: React.FC = () => {
                           {component.special && (
                             <div className="text-purple-400 text-xs mt-2">{component.special}</div>
                           )}
+                          
+                          {/* Display NFT attributes from metadata */}
+                          {component.attributes && component.attributes.length > 0 && (
+                            <div className="mt-2 pt-2 border-t border-gray-700">
+                              {component.attributes.slice(0, 2).map((attr: any, index: number) => (
+                                <div key={index} className="flex justify-between text-xs">
+                                  <span className="text-gray-500">{attr.trait_type}:</span>
+                                  <span>{attr.value}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                         
                         <div className="pt-2 mt-2 border-t border-gray-700">
                           <p className="text-xs text-gray-500 font-mono">
-                            {component.contract}
+                            Token ID: {component.tokenId}
                           </p>
                         </div>
                       </div>
                     </div>
                   );
                 })}
+                
+                {loadingMetadata && (
+                  <div className="col-span-full text-center py-8">
+                    <Loader className="w-8 h-8 mx-auto mb-2 animate-spin text-blue-400" />
+                    <p className="text-gray-400">Loading NFT metadata from IPFS...</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -733,7 +824,9 @@ const MiningRigBuilder: React.FC = () => {
                     >
                       <div>
                         <div className="font-medium">{component.name}</div>
-                        <div className="text-sm text-gray-400">{component.type} • {component.rarity}</div>
+                        <div className="text-sm text-gray-400">
+                          {component.type} • {component.rarity} • ID: {component.tokenId}
+                        </div>
                       </div>
                       <button
                         onClick={() => removeComponent(component.id)}
