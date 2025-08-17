@@ -94,8 +94,9 @@ const MiningRigBuilder: React.FC = () => {
   const getContractAddresses = (chainId: number) => {
     if (chainId === 31337) { // Localhost
       try {
-        // Try to load deployment info for localhost
-        const wattToken = '0x6645143e49B3a15d8F205658903a55E520444698';
+        nftContract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2',
+        wattContract: '0x6645143e49B3a15d8F205658903a55E520444698',
+        stakingContract: '0xe463045318393095F11ed39f1a98332aBCc1A7b1'
         return {
           nftContract: '0x5FbDB2315678afecb367f032d93F642f64180aa3', // deploymentInfo.contracts.genesisBadge,
           wattToken: wattToken, // deploymentInfo.contracts.wattToken,
@@ -150,7 +151,8 @@ const MiningRigBuilder: React.FC = () => {
     } else if (chainId === 137) { // Polygon
       return {
         nftContract: '0x970a8b10147e3459d3cbf56329b76ac18d329728',
-        wattToken: '0xE960d5076cd3169C343Ee287A2c3380A222e5839',
+        wattContract: '0xE960d5076cd3169C343Ee287A2c3380A222e5839',
+        stakingContract: '0xcbfcA68D10B2ec60a0FB2Bc58F7F0Bfd32CD5275'
         wattTokenDisplay: '0xE960d5076cd3169C343Ee287A2c3380A222e5839',
         nftStaking: '0x...', // Update with NFT Staking contract on Polygon
         miningRigContract: '0x...', // Will be deployed
@@ -166,7 +168,8 @@ const MiningRigBuilder: React.FC = () => {
     }
     return {
       nftContract: '0x0000000000000000000000000000000000000000',
-      wattToken: '0x0000000000000000000000000000000000000000',
+        wattContract: '0x0000000000000000000000000000000000000000',
+        stakingContract: '0x0000000000000000000000000000000000000000'
       wattTokenDisplay: '0x0000000000000000000000000000000000000000',
       nftStaking: '0x0000000000000000000000000000000000000000',
       miningRigContract: '0x0000000000000000000000000000000000000000',
