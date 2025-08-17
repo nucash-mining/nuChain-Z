@@ -962,9 +962,12 @@ const MiningRigBuilder: React.FC = () => {
                         </div>
                         
                         <div className="pt-2 mt-2 border-t border-gray-700">
-                          <p className="text-xs text-gray-500 font-mono">
+                          <p className="text-xs text-gray-400 font-mono">
                             Token ID: {component.tokenId}
                           </p>
+                          <div className="text-xs text-gray-500 font-mono mt-1 break-all">
+                            Contract: {contractAddresses.nft}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1287,5 +1290,3 @@ const MiningRigBuilder: React.FC = () => {
 };
 
 export default MiningRigBuilder;
-
-export default MiningRigBuilder
