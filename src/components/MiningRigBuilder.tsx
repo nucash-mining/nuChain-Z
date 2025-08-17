@@ -1287,3 +1287,5 @@ const MiningRigBuilder: React.FC = () => {
 };
 
 export default MiningRigBuilder;
+
+export default MiningRigBuilder
