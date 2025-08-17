@@ -425,7 +425,8 @@ const MiningRigBuilder: React.FC = () => {
   const renderMedia = (component: Component) => {
     const { animation_url, image } = component;
     
-    if (animation_url?.endsWith('.mp4')) {
+    // Handle video files (.mp4)
+    if (animation_url?.includes('.mp4')) {
       return (
         <video
           src={animation_url}
@@ -444,21 +445,18 @@ const MiningRigBuilder: React.FC = () => {
       );
     }
     
-    if (animation_url?.endsWith('.glb')) {
+    // Handle 3D models (.glb)
+    if (animation_url?.includes('.glb')) {
       return (
-        <div className="relative">
-          <img
-            src={image}
-            alt={component.name}
-            className="w-full h-48 object-cover rounded-lg"
-          />
-          <div className="absolute top-2 right-2 bg-purple-600 text-white text-xs px-2 py-1 rounded">
-            3D
-          </div>
-        </div>
+        <ThreeDViewer
+          modelUrl={animation_url}
+          fallbackImage={image}
+          className="w-full h-48"
+        />
       );
     }
     
+    // Fallback to still image
     return (
       <img
         src={image}
