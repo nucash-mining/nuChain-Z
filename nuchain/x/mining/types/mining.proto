@@ -1,0 +1,65 @@
+syntax = "proto3";
+package nuchain.mining.v1;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "nuchain/x/mining/types";
+
+// MiningRigNFT represents an NFT mining rig configuration from external chains
+message MiningRigNFT {
+  uint64 token_id = 1;
+  string owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string chain_id = 3; // "altcoinchain-2330" or "polygon-137"
+  string contract_address = 4;
+  uint64 hash_power = 5;
+  uint64 watt_consumption = 6;
+  bool is_active = 7;
+  int64 last_updated = 8;
+}
+
+// PoolOperator represents a mining pool operator
+message PoolOperator {
+  string address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string chain_id = 2;
+  bool has_staked_watt = 3; // Has staked 100,000 WATT tokens
+  repeated string miners = 4; // List of miner addresses in the pool
+  uint64 total_hash_power = 5;
+  int64 created_at = 6;
+}
+
+// CrossChainMessage represents messages from Altcoinchain/Polygon
+message CrossChainMessage {
+  string source_chain = 1;
+  string message_type = 2; // "mining_rig_update", "pool_stake", "reward_claim"
+  bytes payload = 3;
+  string sender = 4;
+  uint64 nonce = 5;
+  int64 timestamp = 6;
+}
+
+// StakingNode represents a nuChain validator node
+message StakingNode {
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string moniker = 2;
+  uint64 staked_nu = 3; // 21 NU tokens minimum
+  bool is_online = 4;
+  int64 last_block_signed = 5;
+  uint64 voting_power = 6;
+  repeated string supported_chains = 7; // ["altcoinchain-2330", "polygon-137"]
+}
+
+// BlockReward represents mining rewards to be distributed
+message BlockReward {
+  uint64 block_height = 1;
+  string chain_id = 2;
+  repeated RewardDistribution distributions = 3;
+  int64 timestamp = 4;
+}
+
+message RewardDistribution {
+  string recipient = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string amount = 2 [(cosmos_proto.scalar) = "cosmos.Int"];
+  string token_denom = 3; // "nu", "watt"
+  string reward_type = 4; // "mining", "staking", "validation"
+}

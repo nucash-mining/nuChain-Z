@@ -1,8 +1,8 @@
 accounts:
   - name: alice
-    coins: ["20000token", "200000000stake"]
+    coins: ["20000nu", "200000000stake"]
   - name: bob
-    coins: ["10000token", "100000000stake"]
+    coins: ["10000nu", "100000000stake"]
 client:
   openapi:
     path: "docs/static/openapi.yml"
@@ -10,10 +10,26 @@ client:
     path: "vue"
 faucet:
   name: bob
-  coins: ["5token", "100000stake"]
+  coins: ["5nu", "100000stake"]
 genesis:
   chain_id: "nuchain-1"
+  consensus_params:
+    block:
+      time_iota_ms: "200"
+      max_bytes: "22020096"
+      max_gas: "-1"
+  app_state:
+    mining:
+      params:
+        min_stake_amount: "21000000000000000000"
+        block_reward: "50000000000000000"
+        halving_interval: 210000000
+        supported_chains: ["altcoinchain-2330", "polygon-137"]
+        layer_zero_endpoint: ""
 validators:
   - name: alice
     bonded: "100000000stake"
     home: "$HOME/.nuchain"
+build:
+  binary: "nuchaind"
+  main: "./cmd/nuchaind"
