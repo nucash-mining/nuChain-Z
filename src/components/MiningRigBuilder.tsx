@@ -110,11 +110,11 @@ const MiningRigBuilder: React.FC = () => {
   const [showContractModal, setShowContractModal] = useState(false);
   const [rigConfiguration, setRigConfiguration] = useState({
     name: '',
-  const [showFreeMintModal, setShowFreeMintModal] = useState(false);
     payoutAddress: '',
     wattAllowance: '',
     stakingAddress: ''
   });
+  const [showFreeMintModal, setShowFreeMintModal] = useState(false);
   const [showStakeModal, setShowStakeModal] = useState(false);
   const [selectedRigForStaking, setSelectedRigForStaking] = useState<number | null>(null);
   const [savedRigs, setSavedRigs] = useState<any[]>([]);
@@ -1100,61 +1100,6 @@ const MiningRigBuilder: React.FC = () => {
         </div>
       </div>
 
-      {/* Free Mint PC Case Modal */}
-      {showFreeMintModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 max-w-md w-full">
-            <h2 className="text-2xl font-bold text-white mb-6">Free Mint Gaming PC</h2>
-            
-            <div className="text-center mb-6">
-              <div className="w-24 h-24 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl mx-auto mb-4 flex items-center justify-center text-4xl">
-                🖥️
-              </div>
-              <h3 className="text-lg font-semibold text-white mb-2">Free Mint Gaming PC Case</h3>
-              <p className="text-gray-300 text-sm">
-                Each wallet can mint 1 free Gaming PC Case. Additional cases can be minted when 
-                your current PC Case is staked in a mining pool.
-              </p>
-            </div>
-            
-            <div className="bg-white/5 rounded-lg p-4 mb-6">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Network:</span>
-                <span className="text-white">{selectedNetwork}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Contract:</span>
-                <span className="text-white font-mono text-xs">
-                  {selectedNetwork === 'Altcoinchain' 
-                    ? '0xf967...Ffb2' 
-                    : '0x970a...9728'}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Gas Fee:</span>
-                <span className="text-white">~$0.50</span>
-              </div>
-            </div>
-            
-            <div className="flex space-x-3">
-              <button
-                onClick={handleFreeMintPCCase}
-                disabled={isLoading || userFreeMintUsed}
-                className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed px-6 py-3 rounded-lg font-semibold text-white transition-all"
-              >
-                {isLoading ? 'Minting...' : userFreeMintUsed ? 'Already Used' : 'Free Mint'}
-              </button>
-              <button
-                onClick={() => setShowFreeMintModal(false)}
-                className="px-6 py-3 bg-gray-600 hover:bg-gray-700 rounded-lg font-semibold text-white transition-all"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      
       {/* Contract Configuration Modal */}
       {showContractModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
