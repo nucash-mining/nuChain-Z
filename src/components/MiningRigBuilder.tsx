@@ -595,6 +595,7 @@ const MiningRigBuilder: React.FC = () => {
                                  component.id === 3 || component.id === 4 || component.id === 5 ? "transform scale-150 -mt-12 -ml-24 mb-8" : ""}>
                     {renderMedia(component)}
                   </div>
+                  </div>
                   
                   <div className="mt-4">
                     <div className="flex items-center justify-between mb-2">
