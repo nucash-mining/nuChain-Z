@@ -106,6 +106,24 @@ const MiningRigBuilder: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [selectedComponents, setSelectedComponents] = useState<Component[]>([]);
   const [availableComponents, setAvailableComponents] = useState<Component[]>([]);
+  const [gpuCount, setGpuCount] = useState<{tx120: number, gp50: number}>({tx120: 0, gp50: 0});
+  const [showContractModal, setShowContractModal] = useState(false);
+  const [rigConfiguration, setRigConfiguration] = useState({
+    name: '',
+    payoutAddress: '',
+    wattAllowance: '',
+    stakingAddress: ''
+  });
+  const [showStakeModal, setShowStakeModal] = useState(false);
+  const [selectedRigForStaking, setSelectedRigForStaking] = useState<number | null>(null);
+  const [savedRigs, setSavedRigs] = useState<any[]>([]);
+  const [showPoolModal, setShowPoolModal] = useState(false);
+  const [poolConfiguration, setPoolConfiguration] = useState({
+    name: '',
+    wattStake: '100000',
+    feePercentage: '2.5',
+    payoutAddress: ''
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [selectedNetwork, setSelectedNetwork] = useState('altcoinchain');
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -339,46 +357,39 @@ const MiningRigBuilder: React.FC = () => {
       toast.error('Failed to connect wallet');
     }
   };
+    // Validate required components
+    const hasCase = selectedComponents.some(c => c.id === 1) || component.id === 1;
+    const hasCPU = selectedComponents.some(c => c.id === 3) || component.id === 3;
+    
+    if (!hasCase && component.id !== 1) {
+      toast.error('You must add a PC Case first');
+      return;
+    }
+    
+    if (!hasCPU && component.id !== 1 && component.id !== 3) {
+      toast.error('You must add an XL1 Processor before adding other components');
+      return;
+    }
 
-  const switchNetwork = async (networkKey: string) => {
-    const network = NETWORKS[networkKey];
-    if (!network) return;
-
-    try {
-      await window.ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: `0x${network.chainId.toString(16)}` }],
-      });
-      setSelectedNetwork(networkKey);
-      toast.success(`Switched to ${network.name}`);
-    } catch (error: any) {
-      if (error.code === 4902) {
-        // Network not added to wallet, try to add it
-        try {
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [{
-              chainId: `0x${network.chainId.toString(16)}`,
-              chainName: network.name,
-              nativeCurrency: network.nativeCurrency,
-              rpcUrls: [network.rpcUrl],
-              blockExplorerUrls: network.blockExplorerUrls
-            }]
-          });
-          // After adding, try to switch again
-          await window.ethereum.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: `0x${network.chainId.toString(16)}` }],
-          });
-          setSelectedNetwork(networkKey);
-          toast.success(`Added and switched to ${network.name}`);
-        } catch (addError) {
-          console.error('Error adding network:', addError);
-          toast.error(`Failed to add ${network.name} to wallet`);
-        }
-      } else {
-        console.error('Error switching network:', error);
-        toast.error('Failed to switch network');
+    // GPU validation - allow max 2 GPUs total, max 1 TX120, max 2 GP50
+    if (component.id === 4 || component.id === 5) {
+      const currentTX120 = selectedComponents.filter(c => c.id === 4).length;
+      const currentGP50 = selectedComponents.filter(c => c.id === 5).length;
+      const totalGPUs = currentTX120 + currentGP50;
+      
+      if (totalGPUs >= 2) {
+        toast.error('Maximum 2 Graphics Cards allowed per rig');
+        return;
+      }
+      
+      if (component.id === 4 && currentTX120 >= 1) {
+        toast.error('Maximum 1 TX120 GPU allowed per rig');
+        return;
+      }
+      
+      if (component.id === 5 && currentGP50 >= 2) {
+        toast.error('Maximum 2 GP50 GPUs allowed per rig');
+        return;
       }
     }
   };
@@ -570,45 +581,28 @@ const MiningRigBuilder: React.FC = () => {
   };
 
   const buildMiningRig = async () => {
-    if (selectedComponents.length === 0) {
-      toast.error('Please select at least one component');
+    // Validate required components
+    const hasCase = selectedComponents.some(c => c.id === 1);
+    const hasCPU = selectedComponents.some(c => c.id === 3);
+    const hasGPU = selectedComponents.some(c => c.id === 4 || c.id === 5);
+
+    if (!hasCase) {
+      toast.error('PC Case is required');
       return;
     }
 
-    setIsLoading(true);
-    try {
-      // Simulate building mining rig
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const stats = calculateTotalStats();
-      toast.success(`Mining rig built! Total hashpower: ${stats.totalHashpower}`);
-      setSelectedComponents([]);
-    } catch (error) {
-      console.error('Error building mining rig:', error);
-      toast.error('Failed to build mining rig');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const deployMiningPool = async () => {
-    if (!poolFormData.poolName || !poolFormData.domainName || !poolFormData.feePayoutAddress) {
-      toast.error('Please fill in all required fields');
+    if (!hasCPU) {
+      toast.error('XL1 Processor is required');
       return;
     }
 
-    setIsLoading(true);
-    try {
-      // Simulate pool deployment
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      toast.success(`Mining pool "${poolFormData.poolName}" deployed successfully!`);
-      setShowPoolDeployment(false);
-      setPoolFormData({
-        poolName: '',
-        domainName: '',
-        feePayoutAddress: '',
-        feeRate: '0',
+    if (!hasGPU) {
+      toast.error('At least one Graphics Card is required');
+      return;
+    }
+
+    // Show contract interaction modal
+    setShowContractModal(true);
         logoImageUrl: '',
         developerDonation: '0'
       });
