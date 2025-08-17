@@ -361,11 +361,16 @@ const MiningRigBuilder: React.FC = () => {
   const switchNetwork = async (networkKey: string) => {
     try {
       const network = NETWORKS[networkKey];
-      await window.ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: `0x${network.chainId.toString(16)}` }],
-      });
+      
+      if (window.ethereum) {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: `0x${network.chainId.toString(16)}` }],
+        });
+      }
+      
       setSelectedNetwork(networkKey);
+      toast.success(`Switched to ${network.name}`);
     } catch (error: any) {
       if (error.code === 4902) {
         // Network not added to wallet
@@ -382,6 +387,7 @@ const MiningRigBuilder: React.FC = () => {
             }],
           });
           setSelectedNetwork(networkKey);
+          toast.success(`Added and switched to ${network.name}`);
         } catch (addError) {
           console.error('Error adding network:', addError);
           toast.error('Failed to add network');
@@ -642,12 +648,85 @@ const MiningRigBuilder: React.FC = () => {
     setShowContractModal(true);
   };
 
-  const deployMiningPool = async () => {
-    if (!poolFormData.poolName || !poolFormData.domainName || !poolFormData.feePayoutAddress) {
-      toast.error('Please fill in all required fields');
-      return;
+  const handleContractSubmit = async () => {
+    setIsLoading(true);
+    try {
+      // Simulate contract interaction
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      const stats = calculateTotalStats();
+      const newRig = {
+        id: Date.now(),
+        name: rigConfiguration.name,
+        components: selectedComponents,
+        totalHashpower: stats.totalHashpower,
+        totalWattUsage: stats.totalWattUsage,
+        totalStakeWeight: stats.totalStakeWeight,
+        payoutAddress: rigConfiguration.payoutAddress,
+        wattAllowance: rigConfiguration.wattAllowance,
+        network: selectedNetwork,
+        createdAt: new Date().toISOString()
+      };
+      
+      setSavedRigs(prev => [...prev, newRig]);
+      setSelectedComponents([]);
+      setRigConfiguration({
+        name: '',
+        payoutAddress: '',
+        wattAllowance: '',
+        stakingAddress: ''
+      });
+      setShowContractModal(false);
+      
+      toast.success('Mining rig created successfully!');
+    } catch (error) {
+      console.error('Error creating mining rig:', error);
+      toast.error('Failed to create mining rig');
+    } finally {
+      setIsLoading(false);
     }
+  };
 
+  const handleStakeSubmit = async () => {
+    setIsLoading(true);
+    try {
+      // Simulate staking transaction
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      toast.success('NFT mining rig staked successfully!');
+      setShowStakeModal(false);
+      setSelectedRigForStaking(null);
+    } catch (error) {
+      console.error('Error staking rig:', error);
+      toast.error('Failed to stake mining rig');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreatePool = async () => {
+    setIsLoading(true);
+    try {
+      // Simulate pool creation
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      toast.success('Mining pool created successfully!');
+      setShowPoolModal(false);
+      setPoolConfiguration({
+        name: '',
+        wattStake: '100000',
+        feePercentage: '2.5',
+        payoutAddress: ''
+      });
+    } catch (error) {
+      console.error('Error creating pool:', error);
+      toast.error('Failed to create mining pool');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const deployMiningPool = async () => {
     setIsLoading(true);
     try {
       // Simulate pool deployment
@@ -655,8 +734,6 @@ const MiningRigBuilder: React.FC = () => {
       
       toast.success('Mining pool deployed successfully!');
       setShowPoolDeployment(false);
-      
-      // Reset form
       setPoolFormData({
         poolName: '',
         domainName: '',
@@ -1021,6 +1098,261 @@ const MiningRigBuilder: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Contract Configuration Modal */}
+      {showContractModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Mining Rig Contract Configuration</h2>
+            
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Rig Name</label>
+                <input
+                  type="text"
+                  value={rigConfiguration.name}
+                  onChange={(e) => setRigConfiguration(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Enter rig name"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">nuChain Payout Address</label>
+                <input
+                  type="text"
+                  value={rigConfiguration.payoutAddress}
+                  onChange={(e) => setRigConfiguration(prev => ({ ...prev, payoutAddress: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="nu1..."
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">WATT Allowance (per block)</label>
+                <input
+                  type="number"
+                  value={rigConfiguration.wattAllowance}
+                  onChange={(e) => setRigConfiguration(prev => ({ ...prev, wattAllowance: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="1000"
+                />
+              </div>
+              
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-800 mb-3">Contract Details</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Network:</span>
+                    <span className="font-semibold capitalize">{selectedNetwork}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Contract:</span>
+                    <span className="font-mono text-xs">{currentNetwork.nftContract}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Components:</span>
+                    <span className="font-semibold">{selectedComponents.length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Total Hash Power:</span>
+                    <span className="font-semibold text-purple-600">
+                      {stats.totalHashpower}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">WATT/block:</span>
+                    <span className="font-semibold text-yellow-600">
+                      {stats.totalWattUsage}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => setShowContractModal(false)}
+                  className="flex-1 px-6 py-3 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleContractSubmit}
+                  disabled={isLoading}
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 px-6 py-3 rounded-lg font-semibold text-white transition-all"
+                >
+                  {isLoading ? 'Creating...' : 'Create Mining Rig'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Stake NFTs Modal */}
+      {showStakeModal && selectedRigForStaking && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-lg w-full">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Stake NFT Mining Rig</h2>
+            
+            {(() => {
+              const rig = savedRigs.find(r => r.id === selectedRigForStaking);
+              return rig ? (
+                <div className="space-y-6">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="font-semibold text-gray-800 mb-3">{rig.name}</h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Hash Power:</span>
+                        <span className="font-semibold">{rig.totalHashpower}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">WATT Consumption:</span>
+                        <span className="font-semibold">{rig.totalWattUsage}/block</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Network:</span>
+                        <span className="font-semibold capitalize">{rig.network}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Staking Contract:</span>
+                        <span className="font-mono text-xs">{NETWORKS[rig.network].stakingContract}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <p className="text-yellow-800 text-sm">
+                      <strong>Note:</strong> Staking will lock your NFT components and allow WATT consumption 
+                      for mining operations. You can unstake at any time.
+                    </p>
+                  </div>
+                  
+                  <div className="flex space-x-4">
+                    <button
+                      onClick={() => {
+                        setShowStakeModal(false);
+                        setSelectedRigForStaking(null);
+                      }}
+                      className="flex-1 px-6 py-3 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleStakeSubmit}
+                      className="flex-1 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 px-6 py-3 rounded-lg font-semibold text-white transition-all"
+                    >
+                      Stake NFTs
+                    </button>
+                  </div>
+                </div>
+              ) : null;
+            })()}
+          </div>
+        </div>
+      )}
+
+      {/* Create Mining Pool Modal */}
+      {showPoolModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-2xl w-full">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Create Mining Pool</h2>
+            
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Pool Name</label>
+                <input
+                  type="text"
+                  value={poolConfiguration.name}
+                  onChange={(e) => setPoolConfiguration(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Enter pool name"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">WATT Stake Amount</label>
+                <input
+                  type="number"
+                  value={poolConfiguration.wattStake}
+                  onChange={(e) => setPoolConfiguration(prev => ({ ...prev, wattStake: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="100000"
+                  min="100000"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Pool Fee (%)</label>
+                <input
+                  type="number"
+                  value={poolConfiguration.feePercentage}
+                  onChange={(e) => setPoolConfiguration(prev => ({ ...prev, feePercentage: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="2.5"
+                  min="0"
+                  max="10"
+                  step="0.1"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Fee Payout Address</label>
+                <input
+                  type="text"
+                  value={poolConfiguration.payoutAddress}
+                  onChange={(e) => setPoolConfiguration(prev => ({ ...prev, payoutAddress: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="0x..."
+                />
+              </div>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 className="font-semibold text-blue-800 mb-2">Pool Operator Benefits</h3>
+                <ul className="text-blue-700 text-sm space-y-1">
+                  <li>• No WATT fees for your own mining operations</li>
+                  <li>• Earn fees from all pool miners</li>
+                  <li>• Configure pool settings and payouts</li>
+                  <li>• Requires 100,000 WATT stake (refundable)</li>
+                </ul>
+              </div>
+              
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-800 mb-3">Contract Details</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Network:</span>
+                    <span className="font-semibold capitalize">{selectedNetwork}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Pool Contract:</span>
+                    <span className="font-mono text-xs">{currentNetwork.stakingContract}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Required Stake:</span>
+                    <span className="font-semibold text-green-600">100,000 WATT</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => setShowPoolModal(false)}
+                  className="flex-1 px-6 py-3 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreatePool}
+                  className="flex-1 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 px-6 py-3 rounded-lg font-semibold text-white transition-all"
+                >
+                  Create Pool
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* NFT Staking Modal */}
       <AnimatePresence>
