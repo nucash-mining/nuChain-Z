@@ -16,7 +16,7 @@ interface ModelProps {
   zoomLevel?: number;
 }
 
-const Model: React.FC<ModelProps> = ({ url }) => {
+const Model: React.FC<ModelProps> = ({ url, zoomLevel }) => {
   const meshRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   
