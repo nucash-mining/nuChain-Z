@@ -175,6 +175,7 @@ const MiningRigBuilder: React.FC = () => {
     const addresses = getContractAddresses(chainId);
     if (!addresses) return;
 
+    // Mining Game NFT components with exact data
     const components: Component[] = [
       {
         id: 'pc-case-1',
@@ -267,33 +268,46 @@ const MiningRigBuilder: React.FC = () => {
     try {
       setIsLoading(true);
       
-      // Load user's mining rigs
-      const rigIds = await nftMiningRigContract.getUserRigs(account);
-      const rigs: MiningRig[] = [];
+      // Use sample configured rigs data for now (replace with contract calls when deployed)
+      const sampleRigs: MiningRig[] = [
+        {
+          id: 1,
+          name: 'Alpha Mining Rig',
+          components: [
+            { type: 'PC Case', name: 'Free Mint PC Case' },
+            { type: 'Processor', name: 'XL1 Processor' },
+            { type: 'Graphics Card', name: 'TX120 GPU' },
+            { type: 'Boost Item', name: 'Genesis Badge' }
+          ],
+          totalHashPower: 1875000, // 187.5 MH/s in hash units
+          totalWattConsumption: 612,
+          genesisBadgeMultiplier: 150,
+          isPoweredOn: true,
+          efficiency: '0.31 MH/W',
+          status: 'mining',
+          pool: 'Beta Mining Pool',
+          earnings: '2.47 WATT/day'
+        },
+        {
+          id: 2,
+          name: 'Beta Mining Rig',
+          components: [
+            { type: 'PC Case', name: 'Free Mint PC Case' },
+            { type: 'Processor', name: 'XL1 Processor' },
+            { type: 'Graphics Card', name: 'GP50 GPU' }
+          ],
+          totalHashPower: 2250000, // 225 MH/s in hash units
+          totalWattConsumption: 575,
+          genesisBadgeMultiplier: 100,
+          isPoweredOn: false,
+          efficiency: '0.39 MH/W',
+          status: 'idle',
+          pool: undefined,
+          earnings: '0 WATT/day'
+        }
+      ];
       
-      for (const rigId of rigIds) {
-        const rigData = await nftMiningRigContract.getMiningRig(rigId);
-        
-        // Calculate efficiency
-        const efficiency = rigData.totalWattConsumption > 0 
-          ? (rigData.totalHashPower / rigData.totalWattConsumption).toFixed(2)
-          : '0';
-        
-        rigs.push({
-          id: rigId.toNumber(),
-          name: `Mining Rig #${rigId.toNumber()}`,
-          components: [], // Would load component details from contract
-          totalHashPower: rigData.totalHashPower.toNumber(),
-          totalWattConsumption: rigData.totalWattConsumption.toNumber(),
-          genesisBadgeMultiplier: rigData.genesisBadgeMultiplier.toNumber(),
-          isPoweredOn: rigData.isPoweredOn,
-          efficiency: `${efficiency} MH/W`,
-          status: rigData.isPoweredOn ? 'mining' : 'idle',
-          earnings: rigData.isPoweredOn ? '2.47 WATT/day' : '0 WATT/day'
-        });
-      }
-      
-      setUserRigs(rigs);
+      setUserRigs(sampleRigs);
       
     } catch (error) {
       console.error('Failed to load user data:', error);
