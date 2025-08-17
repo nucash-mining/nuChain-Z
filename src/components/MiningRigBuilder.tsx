@@ -668,6 +668,24 @@ const MiningRigBuilder: React.FC = () => {
       <img
         src={image}
         alt={component.name}
+    // Check GPU selection limits
+    const currentGPUs = selectedComponents.filter(c => [4, 5].includes(c.id));
+    const isGPU = [4, 5].includes(component.id);
+    
+    if (isGPU && !component.isSelected && currentGPUs.length >= 2) {
+      toast.error('Maximum 2 GPUs allowed per mining rig');
+      return;
+    }
+    
+    // Check for duplicate GPU types
+    if (isGPU && !component.isSelected) {
+      const sameTypeGPU = currentGPUs.find(gpu => gpu.id === component.id);
+      if (sameTypeGPU) {
+        toast.error(`Only 1 ${component.name} allowed per mining rig`);
+        return;
+      }
+    }
+    
         className="w-full h-48 object-cover rounded-lg"
         onError={(e) => {
           const target = e.target as HTMLImageElement;
