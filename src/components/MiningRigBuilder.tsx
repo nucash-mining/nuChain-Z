@@ -606,6 +606,7 @@ const MiningRigBuilder: React.FC = () => {
         logoImageUrl: '',
         developerDonation: '0'
       });
+      });
     } catch (error) {
       console.error('Error deploying mining pool:', error);
       toast.error('Failed to deploy mining pool');
