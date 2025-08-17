@@ -167,7 +167,6 @@ const MiningRigBuilder: React.FC = () => {
     const addresses = getContractAddresses(chainId);
     if (!addresses) return;
 
-    // Real component data from WATTxchange repository
     const components: Component[] = [
       {
         id: 'pc-case-1',
@@ -195,7 +194,7 @@ const MiningRigBuilder: React.FC = () => {
         rarity: 'Rare',
         hashRateBonus: '+25%',
         powerConsumption: '125W',
-        hashPower: 500000, // Base hash power
+        hashPower: 500000,
         wattConsumption: 125,
         cores: 8,
         glbFile: '/models/xl1-processor.glb',
@@ -211,7 +210,7 @@ const MiningRigBuilder: React.FC = () => {
         rarity: 'Epic',
         hashRateBonus: '+150%',
         powerConsumption: '320W',
-        hashPower: 1500000, // High-end GPU hash power
+        hashPower: 1500000,
         wattConsumption: 320,
         vram: '12GB',
         glbFile: '/models/tx120-gpu.glb',
@@ -227,7 +226,7 @@ const MiningRigBuilder: React.FC = () => {
         rarity: 'Legendary',
         hashRateBonus: '+200%',
         powerConsumption: '450W',
-        hashPower: 2000000, // Top-tier GPU hash power
+        hashPower: 2000000,
         wattConsumption: 450,
         vram: '24GB',
         glbFile: '/models/gp50-gpu.glb',
@@ -243,7 +242,7 @@ const MiningRigBuilder: React.FC = () => {
         rarity: 'Mythic',
         hashRateBonus: '+50% Overclock',
         powerConsumption: '+25%',
-        hashPower: 0, // Multiplier, not direct hash power
+        hashPower: 0,
         wattConsumption: 0,
         special: 'Overclocks all components',
         glbFile: '/models/genesis-badge.glb',
@@ -313,12 +312,12 @@ const MiningRigBuilder: React.FC = () => {
     if (component.type === 'Processor') {
       const existingProcessor = selectedComponents.find(c => c.type === 'Processor');
       if (existingProcessor) {
-        alert('Only one XL1 Processor allowed per rig');
+        alert('Only one Processor allowed per rig');
         return;
       }
     }
     
-    // GPU restrictions: max 1 of each type, max 2 total
+    // GPU restrictions: max 1 TX120, max 1 GP50, max 2 total GPUs
     if (component.type === 'Graphics Card') {
       const existingGPUs = selectedComponents.filter(c => c.type === 'Graphics Card');
       
@@ -327,7 +326,7 @@ const MiningRigBuilder: React.FC = () => {
         return;
       }
       
-      // Check for duplicate GPU types
+      // Check for duplicate GPU types - only 1 of each allowed
       const existingTX120 = existingGPUs.find(c => c.name === 'TX120 GPU');
       const existingGP50 = existingGPUs.find(c => c.name === 'GP50 GPU');
       
@@ -413,9 +412,10 @@ const MiningRigBuilder: React.FC = () => {
     // Validate required components
     const hasCase = selectedComponents.some(c => c.type === 'PC Case');
     const hasProcessor = selectedComponents.some(c => c.type === 'Processor');
+    const hasGPU = selectedComponents.some(c => c.type === 'Graphics Card');
     
-    if (!hasCase || !hasProcessor) {
-      alert('Mining rig requires exactly 1 PC Case and 1 XL1 Processor');
+    if (!hasCase || !hasProcessor || !hasGPU) {
+      alert('Mining rig requires: 1 PC Case, 1 XL1 Processor, and at least 1 Graphics Card');
       return;
     }
     
@@ -435,7 +435,7 @@ const MiningRigBuilder: React.FC = () => {
     }
     
     if (gpuComponents.length === 0) {
-      alert('At least 1 Graphics Card (TX120 or GP50) required');
+      alert('At least 1 Graphics Card required (TX120 or GP50)');
       return;
     }
     
@@ -750,7 +750,7 @@ const MiningRigBuilder: React.FC = () => {
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span>• 1-2x GPU (TX120 or GP50)</span>
+                      <span>• 1-2x GPU (max 1 of each type)</span>
                       <span className={selectedComponents.some(c => c.type === 'Graphics Card') ? 'text-green-400' : 'text-red-400'}>
                         {selectedComponents.filter(c => c.type === 'Graphics Card').length > 0 ? `✓ (${selectedComponents.filter(c => c.type === 'Graphics Card').length})` : '✗'}
                       </span>
