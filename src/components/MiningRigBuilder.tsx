@@ -956,7 +956,7 @@ const MiningRigBuilder: React.FC = () => {
             </button>
 
             {/* Network Info */}
-            <div className={\`mt-6 ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white/5 border-white/10'} rounded-xl p-4 border`}>
+            <div className={`mt-6 ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white/5 border-white/10'} rounded-xl p-4 border`}>
               <h4 className="font-semibold mb-2">Network Information</h4>
               <div className="space-y-1 text-xs text-gray-400">
                 <div className="flex justify-between">
