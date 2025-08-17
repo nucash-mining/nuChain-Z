@@ -318,7 +318,29 @@ const MiningRigBuilder: React.FC = () => {
         }
       }).catch(console.error);
     }
+    checkUserAccount();
   }, []);
+
+  const checkUserAccount = async () => {
+    if (typeof window.ethereum !== 'undefined') {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        setUserAccount(accounts[0]);
+        
+        // Check if user has used free mint
+        const hasUsedFreeMint = await checkFreeMintUsage(accounts[0]);
+        setUserFreeMintUsed(hasUsedFreeMint);
+      } catch (error) {
+        console.error('Error connecting wallet:', error);
+      }
+    }
+  };
+
+  const checkFreeMintUsage = async (account: string) => {
+    // Check if user has already used free mint
+    // This would query the Mining Game contract
+    return false; // Placeholder
+  };
 
   useEffect(() => {
     if (isConnected) {
