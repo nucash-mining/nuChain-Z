@@ -714,15 +714,7 @@ const MiningRigBuilder: React.FC = () => {
           {account && (
             <div className="flex justify-center items-center space-x-4 mt-4">
               <p className="text-sm text-gray-400">Connected: {account.slice(0, 6)}...{account.slice(-4)}</p>
-              <div className="text-center">
-                <p className="text-sm text-yellow-400">WATT Balance: {parseFloat(wattBalance).toLocaleString()}</p>
-                <p className="text-xs text-gray-500 font-mono">
-                  {(() => {
-                    const addresses = getContractAddresses(chainId);
-                    return addresses?.wattTokenDisplay || 'Contract not found';
-                  })()}
-                </p>
-              </div>
+              <p className="text-sm text-yellow-400">WATT Balance: {parseFloat(wattBalance).toLocaleString()}</p>
               <div className="flex space-x-2">
                 <button
                   onClick={() => switchNetwork(2330)}
@@ -863,9 +855,6 @@ const MiningRigBuilder: React.FC = () => {
                         <div className="pt-2 mt-2 border-t border-gray-700">
                           <p className="text-xs text-gray-500 font-mono">
                             Token ID: {component.tokenId}
-                          </p>
-                          <p className="text-xs text-gray-500 font-mono">
-                            Contract: {component.contractAddress.slice(0, 10)}...{component.contractAddress.slice(-6)}
                           </p>
                         </div>
                       </div>
