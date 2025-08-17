@@ -13,9 +13,13 @@ zChain is a UTXO-based sidechain of nuChain that provides hardware-accelerated z
 - **Privacy Layer**: Zcash-style shielded transactions with nullifiers and commitments
 
 ### 2. Hardware-Accelerated Mining
-- **zk-SNARK Proofs**: Cysic-style proof generation and verification
-- **Supported Hardware**: NVIDIA A100/H100 GPUs, Xilinx FPGAs
-- **Hardware Bonuses**: Additional rewards for hardware acceleration
+- **Equihash 144_5 (zhash)**: ASIC-resistant mining algorithm like Zcash
+- **Supported Hardware**: Consumer and professional GPUs (NVIDIA RTX, AMD RX series)
+- **ASIC Resistance**: 1GB memory requirement prevents ASIC mining
+- **Hardware Bonuses**: Additional rewards for acceleration
+  - NVIDIA RTX 4090: +0.005 Z bonus per block
+  - AMD RX 7900 XTX: +0.0055 Z bonus per block
+  - Professional GPUs: Additional bonuses for data centers
 - **Mining Pools**: Collaborative mining with shared rewards
 
 ### 3. Block Production
