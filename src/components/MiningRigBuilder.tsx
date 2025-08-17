@@ -1,1388 +1,1138 @@
 import React, { useState, useEffect } from 'react';
-import { ethers } from 'ethers';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Cpu, HardDrive, Monitor, Award, Plus, Minus, Settings, Wallet, ExternalLink, Sun, Moon } from 'lucide-react';
+import { 
+  Zap, 
+  Settings, 
+  Plus, 
+  Trash2, 
+  Play, 
+  Pause, 
+  Award,
+  DollarSign,
+  Users,
+  TrendingUp,
+  RefreshCw,
+  X,
+  Check,
+  AlertTriangle
+} from 'lucide-react';
+import { ethers } from 'ethers';
 import toast from 'react-hot-toast';
 import ThreeDViewer from './ThreeDViewer';
 
-// Logo constants
-const WATT_LOGO = "https://github.com/The-Mining-Game/Graphics/blob/main/Logo%20Watt/Watt%20Logo%20-%20Illustrator/Watt-Logo128px.png?raw=true";
-const MINING_GAME_LOGO = "https://github.com/The-Mining-Game/Graphics/blob/main/Mining%20Game%20Logo/logo_1.png?raw=true";
-
-interface ComponentMetadata {
-  name: string;
-  description: string;
-  image: string;
-  image_small?: string;
-  animation_url?: string;
-  attributes: Array<{
-    trait_type: string;
-    value: string | number;
-    display_type?: string;
-  }>;
-  specs?: string;
-}
-
-interface Component {
-  id: number;
-  name: string;
-  type: 'processor' | 'gpu' | 'case' | 'boost';
-  hashpower: number;
-  wattUsage: number;
-  stakeWeight: number;
-  image: string;
-  animation_url?: string;
-  brand: string;
-  generation: string;
-  description: string;
-  balance: number;
-  metadata?: ComponentMetadata;
-}
-
-interface NetworkConfig {
-  chainId: number;
-  name: string;
-  nftContract: string;
-  wattContract: string;
-  stakingContract: string;
-  rpcUrl: string;
-  nativeCurrency: {
-    name: string;
-    symbol: string;
-    decimals: number;
-  };
-  blockExplorerUrls?: string[];
-}
-
-const NETWORKS: Record<string, NetworkConfig> = {
-  localhost: {
-    chainId: 31337,
-    name: 'Localhost',
-    nftContract: '0x0000000000000000000000000000000000000000', // Update with deployed MockERC1155 address
-    wattContract: '0x0000000000000000000000000000000000000000', // Update with deployed MockERC20 address
-    stakingContract: '0x0000000000000000000000000000000000000000', // Update with deployed MiningPoolOperator address
-    rpcUrl: 'http://localhost:8545',
-    nativeCurrency: {
-      name: 'Ether',
-      symbol: 'ETH',
-      decimals: 18
-    },
-    blockExplorerUrls: ['http://localhost:8545']
+// Contract addresses for different networks
+const CONTRACT_ADDRESSES = {
+  polygon: {
+    nftContract: '0x970a8b10147e3459d3cbf56329b76ac18d329728',
+    wattToken: '0xE960d5076cd3169C343Ee287A2c3380A222e5839',
+    nftStaking: '0xcbfcA68D10B2ec60a0FB2Bc58F7F0Bfd32CD5275'
   },
   altcoinchain: {
-    chainId: 2330,
-    name: 'Altcoinchain',
     nftContract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2',
-    wattContract: '0x6645143e49B3a15d8F205658903a55E520444698',
-    stakingContract: '0xe463045318393095F11ed39f1a98332aBCc1A7b1',
-    rpcUrl: 'https://rpc.altcoinchain.network',
-    nativeCurrency: {
-      name: 'Altcoin',
-      symbol: 'ALT',
-      decimals: 18
-    },
-    blockExplorerUrls: ['https://explorer.altcoinchain.network']
+    wattToken: '0x6645143e49B3a15d8F205658903a55E520444698',
+    nftStaking: '0xe463045318393095F11ed39f1a98332aBCc1A7b1'
   },
-  polygon: {
-    chainId: 137,
-    name: 'Polygon',
-    nftContract: '0x970a8b10147e3459d3cbf56329b76ac18d329728',
-    wattContract: '0xE960d5076cd3169C343Ee287A2c3380A222e5839',
-    stakingContract: '0xcbfcA68D10B2ec60a0FB2Bc58F7F0Bfd32CD5275',
-    rpcUrl: 'https://polygon-rpc.com',
-    nativeCurrency: {
-      name: 'Polygon',
-      symbol: 'MATIC',
-      decimals: 18
-    },
-    blockExplorerUrls: ['https://polygonscan.com']
+  localhost: {
+    nftContract: '0x0000000000000000000000000000000000000000',
+    wattToken: '0x0000000000000000000000000000000000000000',
+    nftStaking: '0x0000000000000000000000000000000000000000'
   }
 };
 
+// Mining Game NFT components data
+const MINING_GAME_COMPONENTS = [
+  {
+    id: 1,
+    name: "FREE MINT GAMING PC",
+    description: "The basic PC needed to play the Mining Game. Free to mint! This NFT receives Play to Earn Rewards.",
+    image: "https://api.mining.game/1.png",
+    animation_url: "https://api.mining.game/1.glb",
+    hashPower: 2,
+    wattUsage: 5,
+    stakeWeight: 1,
+    componentType: "case",
+    required: true
+  },
+  {
+    id: 2,
+    name: "GENESIS BADGE",
+    description: "The exclusive Genesis Badge, increasing luck and efficiency with 10%! Only 100 will ever be minted!",
+    image: "https://api.mining.game/2.jpg",
+    animation_url: "https://api.mining.game/2.mp4",
+    hashPower: 0,
+    wattUsage: 0,
+    stakeWeight: 42,
+    componentType: "badge",
+    multiplier: 110 // 10% boost
+  },
+  {
+    id: 3,
+    name: "XL1 PROCESSOR",
+    description: "CPU upgrade for your Gaming PC! This NFT receives Play to Earn Rewards.",
+    image: "https://api.mining.game/3.png",
+    animation_url: "https://api.mining.game/3.glb",
+    hashPower: 10,
+    wattUsage: 2,
+    stakeWeight: 9,
+    componentType: "cpu",
+    required: true
+  },
+  {
+    id: 4,
+    name: "TX120 GPU",
+    description: "GPU upgrade for your Gaming PC! This NFT receives Play to Earn Rewards.",
+    image: "https://api.mining.game/4.png",
+    animation_url: "https://api.mining.game/4.glb",
+    hashPower: 20,
+    wattUsage: 10,
+    stakeWeight: 11,
+    componentType: "gpu",
+    maxQuantity: 1
+  },
+  {
+    id: 5,
+    name: "GP50 GPU",
+    description: "A powerful GPU upgrade for your Gaming PC! This NFT receives Play to Earn Rewards.",
+    image: "https://api.mining.game/5.png",
+    animation_url: "https://api.mining.game/5.glb",
+    hashPower: 33,
+    wattUsage: 16,
+    stakeWeight: 18,
+    componentType: "gpu",
+    maxQuantity: 1
+  }
+];
+
+interface MiningRig {
+  id: string;
+  name: string;
+  components: number[];
+  totalHashPower: number;
+  totalWattConsumption: number;
+  isActive: boolean;
+  selectedPool: string;
+  selectedChain: 'polygon' | 'altcoinchain';
+  createdAt: number;
+}
+
+interface StakedNFT {
+  id: number;
+  name: string;
+  image: string;
+  animation_url: string;
+  dailyRewards: number;
+  isStaked: boolean;
+  canClaim: boolean;
+}
+
 const MiningRigBuilder: React.FC = () => {
-  const [selectedNetwork, setSelectedNetwork] = useState<string>('altcoinchain');
-  const [account, setAccount] = useState<string>('');
-  const [wattBalance, setWattBalance] = useState<string>('0');
-  const [isConnected, setIsConnected] = useState(false);
-  const [selectedComponents, setSelectedComponents] = useState<Component[]>([]);
-  const [availableComponents, setAvailableComponents] = useState<Component[]>([]);
+  const [activeTab, setActiveTab] = useState<'build' | 'manage' | 'stake' | 'watt-stake'>('build');
+  const [selectedComponents, setSelectedComponents] = useState<number[]>([]);
+  const [rigName, setRigName] = useState('');
+  const [selectedPool, setSelectedPool] = useState('direct');
+  const [selectedChain, setSelectedChain] = useState<'polygon' | 'altcoinchain'>('polygon');
+  const [miningRigs, setMiningRigs] = useState<MiningRig[]>([]);
+  const [showBuildModal, setShowBuildModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [showPoolDeployment, setShowPoolDeployment] = useState(false);
-  const [showNFTStaking, setShowNFTStaking] = useState(false);
-  const [selectedStakingNFTs, setSelectedStakingNFTs] = useState<number[]>([]);
-  const [stakingRewards, setStakingRewards] = useState<Record<number, number>>({});
-  const [poolFormData, setPoolFormData] = useState({
-    poolName: '',
-    domainName: '',
-    feePayoutAddress: '',
-    feeRate: '0',
-    logoImageUrl: '',
-    developerDonation: '0'
-  });
-
-  // Component metadata with real Mining Game data
-  const componentMetadata: Record<number, ComponentMetadata> = {
-    1: {
-      name: "Free mint Gaming PC",
-      description: "The basic PC needed to play the Mining Game. Free to mint! This NFT receives Play to Earn Rewards.",
-      image: "https://api.mining.game/1.png",
-      image_small: "https://api.mining.game/1.jpg",
-      animation_url: "https://api.mining.game/1.glb",
-      specs: "102200050000000000",
-      attributes: [
-        { trait_type: "Brand", value: "Minga" },
-        { trait_type: "Component", value: "Basic PC" },
-        { trait_type: "Generation", value: "Gen1" },
-        { display_type: "boost_number", trait_type: "Mining Hashpower", value: 2 },
-        { display_type: "boost_number", trait_type: "WATT Usage", value: 5 },
-        { display_type: "boost_number", trait_type: "Stake Weight", value: 1 }
-      ]
-    },
-    2: {
-      name: "Genesis Badge",
-      description: "The exclusive Genesis Badge, increasing luck and efficience with 10%! Only 100 will ever be minted! This NFT receives Play to Earn Rewards.",
-      image: "https://api.mining.game/2.png",
-      image_small: "https://api.mining.game/2.jpg",
-      animation_url: "https://api.mining.game/2.mp4",
-      specs: "101000000000001010",
-      attributes: [
-        { trait_type: "Component", value: "Badge" },
-        { trait_type: "Generation", value: "Gen1" },
-        { display_type: "boost_percentage", trait_type: "Luck Boost", value: 10 },
-        { display_type: "boost_percentage", trait_type: "Efficiency multiplier", value: 10 },
-        { display_type: "boost_number", trait_type: "Stake Weight", value: 42 }
-      ]
-    },
-    3: {
-      name: "XL1 Processor",
-      description: "CPU upgrade for your Gaming PC! This NFT receives Play to Earn Rewards.",
-      image: "https://api.mining.game/3.png",
-      image_small: "https://api.mining.game/3.jpg",
-      animation_url: "https://api.mining.game/3.glb",
-      specs: "103300070000000000",
-      attributes: [
-        { trait_type: "Brand", value: "Kirtex" },
-        { trait_type: "Component", value: "Processor" },
-        { trait_type: "Generation", value: "Gen1" },
-        { display_type: "boost_number", trait_type: "Mining Hashpower", value: 10 },
-        { display_type: "boost_number", trait_type: "WATT Usage", value: 2 },
-        { display_type: "boost_number", trait_type: "Stake Weight", value: 9 }
-      ]
-    },
-    4: {
-      name: "TX120 GPU",
-      description: "GPU upgrade for your Gaming PC! This NFT receives Play to Earn Rewards.",
-      image: "https://api.mining.game/4.png",
-      image_small: "https://api.mining.game/4.jpg",
-      animation_url: "https://api.mining.game/4.glb",
-      specs: "104500100000000000",
-      attributes: [
-        { trait_type: "Brand", value: "Oblivia" },
-        { trait_type: "Component", value: "GPU" },
-        { trait_type: "Generation", value: "Gen1" },
-        { display_type: "boost_number", trait_type: "Mining Hashpower", value: 20 },
-        { display_type: "boost_number", trait_type: "WATT Usage", value: 10 },
-        { display_type: "boost_number", trait_type: "Stake Weight", value: 11 }
-      ]
-    },
-    5: {
-      name: "GP50 GPU",
-      description: "A powerful GPU upgrade for your Gaming PC! This NFT receives Play to Earn Rewards.",
-      image: "https://api.mining.game/5.png",
-      image_small: "https://api.mining.game/5.jpg",
-      animation_url: "https://api.mining.game/5.glb",
-      specs: "104001000160090000",
-      attributes: [
-        { trait_type: "Brand", value: "MAD" },
-        { trait_type: "Component", value: "GPU" },
-        { trait_type: "Generation", value: "Gen1" },
-        { display_type: "boost_number", trait_type: "Mining Hashpower", value: 33 },
-        { display_type: "boost_number", trait_type: "WATT Usage", value: 16 },
-        { display_type: "boost_number", trait_type: "Stake Weight", value: 18 }
-      ]
-    }
-  };
-
-  const initializeComponents = () => {
-    const components: Component[] = [
-      {
-        id: 1,
-        name: "Free mint Gaming PC",
-        type: 'case',
-        hashpower: 2,
-        wattUsage: 5,
-        stakeWeight: 1,
-        image: "https://api.mining.game/1.png",
-        animation_url: "https://api.mining.game/1.glb",
-        brand: "Minga",
-        generation: "Gen1",
-        description: "The basic PC needed to play the Mining Game. Free to mint!",
-        balance: 0,
-        metadata: componentMetadata[1]
-      },
-      {
-        id: 2,
-        name: "Genesis Badge",
-        type: 'boost',
-        hashpower: 0,
-        wattUsage: 0,
-        stakeWeight: 42,
-        image: "https://api.mining.game/2.png",
-        animation_url: "https://api.mining.game/2.mp4",
-        brand: "Mining Game",
-        generation: "Gen1",
-        description: "The exclusive Genesis Badge, increasing luck and efficience with 10%! Only 100 will ever be minted!",
-        balance: 0,
-        metadata: componentMetadata[2]
-      },
-      {
-        id: 3,
-        name: "XL1 Processor",
-        type: 'processor',
-        hashpower: 10,
-        wattUsage: 2,
-        stakeWeight: 9,
-        image: "https://api.mining.game/3.png",
-        animation_url: "https://api.mining.game/3.glb",
-        brand: "Kirtex",
-        generation: "Gen1",
-        description: "CPU upgrade for your Gaming PC! This NFT receives Play to Earn Rewards.",
-        balance: 0,
-        metadata: componentMetadata[3]
-      },
-      {
-        id: 4,
-        name: "TX120 GPU",
-        type: 'gpu',
-        hashpower: 20,
-        wattUsage: 10,
-        stakeWeight: 11,
-        image: "https://api.mining.game/4.png",
-        animation_url: "https://api.mining.game/4.glb",
-        brand: "Oblivia",
-        generation: "Gen1",
-        description: "GPU upgrade for your Gaming PC! This NFT receives Play to Earn Rewards.",
-        balance: 0,
-        metadata: componentMetadata[4]
-      },
-      {
-        id: 5,
-        name: "GP50 GPU",
-        type: 'gpu',
-        hashpower: 33,
-        wattUsage: 16,
-        stakeWeight: 18,
-        image: "https://api.mining.game/5.png",
-        animation_url: "https://api.mining.game/5.glb",
-        brand: "MAD",
-        generation: "Gen1",
-        description: "A powerful GPU upgrade for your Gaming PC! This NFT receives Play to Earn Rewards.",
-        balance: 0,
-        metadata: componentMetadata[5]
-      }
-    ];
-
-    setAvailableComponents(components);
-  };
+  const [account, setAccount] = useState<string>('');
+  const [stakedNFTs, setStakedNFTs] = useState<StakedNFT[]>([]);
+  const [selectedNFTs, setSelectedNFTs] = useState<number[]>([]);
+  const [showStakeModal, setShowStakeModal] = useState(false);
+  const [showWattStakeModal, setShowWattStakeModal] = useState(false);
+  const [wattStakeAmount, setWattStakeAmount] = useState('');
 
   useEffect(() => {
-    initializeComponents();
-    if (typeof window !== 'undefined' && window.ethereum) {
-      checkConnection();
-      // Auto-detect localhost network
-      window.ethereum.request({ method: 'eth_chainId' }).then((chainId: string) => {
-        const numericChainId = parseInt(chainId, 16);
-        if (numericChainId === 31337) {
-          setSelectedNetwork('localhost');
-        }
-      }).catch(console.error);
-    }
+    initializeWeb3();
+    loadStakedNFTs();
   }, []);
 
-  useEffect(() => {
-    if (isConnected) {
-      loadWattBalance();
-      loadNFTBalances();
-      loadStakingRewards();
+  const initializeWeb3 = async () => {
+    if (typeof window.ethereum !== 'undefined') {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        setAccount(accounts[0]);
+      } catch (error) {
+        console.error('Failed to connect wallet:', error);
+      }
     }
-  }, [selectedNetwork, isConnected, account]);
+  };
 
-  const checkConnection = async () => {
-    try {
-      if (window.ethereum) {
-        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-        if (accounts.length > 0) {
-          setAccount(accounts[0]);
-          setIsConnected(true);
+  const loadStakedNFTs = () => {
+    // Mock staked NFTs data - replace with actual contract calls
+    const mockStakedNFTs: StakedNFT[] = MINING_GAME_COMPONENTS.map(component => ({
+      id: component.id,
+      name: component.name,
+      image: component.image,
+      animation_url: component.animation_url,
+      dailyRewards: Math.random() * 10,
+      isStaked: Math.random() > 0.5,
+      canClaim: Math.random() > 0.7
+    }));
+    
+    setStakedNFTs(mockStakedNFTs);
+  };
+
+  const validateRigConfiguration = () => {
+    const errors: string[] = [];
+    
+    // Check required components
+    const hasCase = selectedComponents.includes(1);
+    const hasCPU = selectedComponents.includes(3);
+    const gpuComponents = selectedComponents.filter(id => [4, 5].includes(id));
+    
+    if (!hasCase) errors.push("PC Case (ID 1) is required");
+    if (!hasCPU) errors.push("XL1 Processor (ID 3) is required");
+    if (gpuComponents.length === 0) errors.push("At least 1 GPU is required");
+    if (gpuComponents.length > 2) errors.push("Maximum 2 GPUs allowed");
+    
+    // Check GPU limits
+    const tx120Count = selectedComponents.filter(id => id === 4).length;
+    const gp50Count = selectedComponents.filter(id => id === 5).length;
+    
+    if (tx120Count > 1) errors.push("Maximum 1 TX120 GPU allowed");
+    if (gp50Count > 1) errors.push("Maximum 1 GP50 GPU allowed");
+    
+    return errors;
+  };
+
+  const calculateRigStats = () => {
+    let totalHashPower = 0;
+    let totalWattConsumption = 0;
+    let multiplier = 100; // Base 100%
+    
+    selectedComponents.forEach(componentId => {
+      const component = MINING_GAME_COMPONENTS.find(c => c.id === componentId);
+      if (component) {
+        if (component.componentType === 'badge') {
+          multiplier = component.multiplier || 100;
+        } else {
+          totalHashPower += component.hashPower;
+          totalWattConsumption += component.wattUsage;
         }
       }
+    });
+    
+    // Apply Genesis Badge multiplier
+    totalHashPower = Math.floor((totalHashPower * multiplier) / 100);
+    
+    return { totalHashPower, totalWattConsumption };
+  };
+
+  const createMiningRig = async () => {
+    const errors = validateRigConfiguration();
+    if (errors.length > 0) {
+      toast.error(errors.join(', '));
+      return;
+    }
+    
+    if (!rigName.trim()) {
+      toast.error('Please enter a rig name');
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      
+      const { totalHashPower, totalWattConsumption } = calculateRigStats();
+      
+      const newRig: MiningRig = {
+        id: Date.now().toString(),
+        name: rigName,
+        components: [...selectedComponents],
+        totalHashPower,
+        totalWattConsumption,
+        isActive: false,
+        selectedPool,
+        selectedChain,
+        createdAt: Date.now()
+      };
+      
+      setMiningRigs([...miningRigs, newRig]);
+      
+      // Reset form
+      setSelectedComponents([]);
+      setRigName('');
+      setShowBuildModal(false);
+      
+      toast.success(`Mining rig "${newRig.name}" created successfully!`);
+      
     } catch (error) {
-      console.error('Error checking connection:', error);
+      console.error('Failed to create mining rig:', error);
+      toast.error('Failed to create mining rig');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const connectWallet = async () => {
+  const toggleRigActive = async (rigId: string) => {
     try {
-      if (!window.ethereum) {
-        toast.error('Please install MetaMask');
-        return;
-      }
-
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      setAccount(accounts[0]);
-      setIsConnected(true);
-      toast.success('Wallet connected successfully');
-    } catch (error) {
-      console.error('Error connecting wallet:', error);
-      toast.error('Failed to connect wallet');
-    }
-  };
-
-  const switchNetwork = async (networkKey: string) => {
-    const network = NETWORKS[networkKey];
-    if (!network) return;
-
-    try {
-      await window.ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: `0x${network.chainId.toString(16)}` }],
-      });
-      setSelectedNetwork(networkKey);
-      toast.success(`Switched to ${network.name}`);
-    } catch (error: any) {
-      if (error.code === 4902) {
-        // Network not added to wallet, try to add it
-        try {
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [{
-              chainId: `0x${network.chainId.toString(16)}`,
-              chainName: network.name,
-              nativeCurrency: network.nativeCurrency,
-              rpcUrls: [network.rpcUrl],
-              blockExplorerUrls: network.blockExplorerUrls
-            }]
-          });
-          // After adding, try to switch again
-          await window.ethereum.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: `0x${network.chainId.toString(16)}` }],
-          });
-          setSelectedNetwork(networkKey);
-          toast.success(`Added and switched to ${network.name}`);
-        } catch (addError) {
-          console.error('Error adding network:', addError);
-          toast.error(`Failed to add ${network.name} to wallet`);
-        }
-      } else {
-        console.error('Error switching network:', error);
-        toast.error('Failed to switch network');
-      }
-    }
-  };
-
-  const loadWattBalance = async () => {
-    if (!isConnected || !account) return;
-
-    try {
-      const network = NETWORKS[selectedNetwork];
-      
-      // Check if contract address is properly configured
-      if (network.wattContract === '0x0000000000000000000000000000000000000000') {
-        console.warn(`WATT contract address not configured for ${network.name}`);
-        setWattBalance('0');
-        return;
-      }
-      
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      
-      const wattContract = new ethers.Contract(
-        network.wattContract,
-        ['function balanceOf(address) view returns (uint256)'],
-        provider
+      setMiningRigs(rigs => 
+        rigs.map(rig => 
+          rig.id === rigId 
+            ? { ...rig, isActive: !rig.isActive }
+            : rig
+        )
       );
-
-      const balance = await wattContract.balanceOf(account);
-      const formattedBalance = ethers.utils.formatEther(balance);
-      setWattBalance(parseFloat(formattedBalance).toFixed(2));
+      
+      const rig = miningRigs.find(r => r.id === rigId);
+      if (rig) {
+        toast.success(`Mining rig "${rig.name}" ${!rig.isActive ? 'activated' : 'deactivated'}`);
+      }
     } catch (error) {
-      console.warn('Error loading WATT balance:', error.message);
-      setWattBalance('0');
+      toast.error('Failed to toggle rig status');
     }
   };
 
-  const loadNFTBalances = async () => {
-    if (!isConnected || !account) return;
-
+  const deleteRig = async (rigId: string) => {
     try {
-      const network = NETWORKS[selectedNetwork];
-      
-      // Check if contract addresses are properly configured
-      if (network.nftContract === '0x0000000000000000000000000000000000000000') {
-        console.warn(`NFT contract address not configured for ${network.name}`);
-        // Set all balances to 0 for unconfigured networks
-        const updatedComponents = availableComponents.map(component => ({
-          ...component,
-          balance: 0
-        }));
-        setAvailableComponents(updatedComponents);
-        return;
-      }
-      
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      
-      const nftContract = new ethers.Contract(
-        network.nftContract,
-        ['function balanceOf(address, uint256) view returns (uint256)'],
-        provider
-      );
-
-      const updatedComponents = await Promise.all(
-        availableComponents.map(async (component) => {
-          try {
-            const balance = await nftContract.balanceOf(account, component.id);
-            return { ...component, balance: balance.toNumber() };
-          } catch (error) {
-            console.warn(`Error loading balance for component ${component.id}:`, error.message);
-            return { ...component, balance: 0 };
-          }
-        })
-      );
-
-      setAvailableComponents(updatedComponents);
+      const rig = miningRigs.find(r => r.id === rigId);
+      setMiningRigs(rigs => rigs.filter(r => r.id !== rigId));
+      toast.success(`Mining rig "${rig?.name}" deleted`);
     } catch (error) {
-      console.warn('Error loading NFT balances:', error.message);
-      // Set all balances to 0 on error
-      const updatedComponents = availableComponents.map(component => ({
-        ...component,
-        balance: 0
-      }));
-      setAvailableComponents(updatedComponents);
-    }
-  };
-
-  const loadStakingRewards = async () => {
-    if (!isConnected || !account) return;
-
-    try {
-      const network = NETWORKS[selectedNetwork];
-      if (network.stakingContract === '0x0000000000000000000000000000000000000000') {
-        return;
-      }
-      
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const stakingContract = new ethers.Contract(
-        network.stakingContract,
-        ['function pendingRewards(address, uint256) view returns (uint256)'],
-        provider
-      );
-
-      const rewards: Record<number, number> = {};
-      for (const component of availableComponents) {
-        try {
-          const pending = await stakingContract.pendingRewards(account, component.id);
-          rewards[component.id] = parseFloat(ethers.utils.formatEther(pending));
-        } catch (error) {
-          rewards[component.id] = 0;
-        }
-      }
-      setStakingRewards(rewards);
-    } catch (error) {
-      console.warn('Error loading staking rewards:', error);
+      toast.error('Failed to delete rig');
     }
   };
 
   const stakeNFTs = async () => {
-    if (selectedStakingNFTs.length === 0) {
-      toast.error('Please select NFTs to stake');
+    if (selectedNFTs.length === 0) {
+      toast.error('Please select at least one NFT to stake');
       return;
     }
-
-    setIsLoading(true);
+    
     try {
-      // Simulate staking transaction
+      setIsLoading(true);
+      
+      // Mock staking transaction
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      toast.success(`Staked ${selectedStakingNFTs.length} NFTs successfully!`);
-      setSelectedStakingNFTs([]);
-      loadStakingRewards();
+      // Update staked status
+      setStakedNFTs(nfts => 
+        nfts.map(nft => 
+          selectedNFTs.includes(nft.id)
+            ? { ...nft, isStaked: true }
+            : nft
+        )
+      );
+      
+      setSelectedNFTs([]);
+      setShowStakeModal(false);
+      toast.success('NFTs staked successfully!');
+      
     } catch (error) {
-      console.error('Error staking NFTs:', error);
       toast.error('Failed to stake NFTs');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const claimRewards = async (componentId: number) => {
-    setIsLoading(true);
+  const unstakeNFT = async (nftId: number) => {
     try {
-      // Simulate claiming rewards
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      setStakedNFTs(nfts => 
+        nfts.map(nft => 
+          nft.id === nftId
+            ? { ...nft, isStaked: false }
+            : nft
+        )
+      );
       
-      const reward = stakingRewards[componentId] || 0;
-      toast.success(`Claimed ${reward.toFixed(4)} WATT rewards!`);
-      
-      // Reset rewards for this component
-      setStakingRewards(prev => ({ ...prev, [componentId]: 0 }));
+      toast.success('NFT unstaked successfully!');
     } catch (error) {
-      console.error('Error claiming rewards:', error);
+      toast.error('Failed to unstake NFT');
+    }
+  };
+
+  const claimRewards = async (nftId: number) => {
+    try {
+      const nft = stakedNFTs.find(n => n.id === nftId);
+      if (nft) {
+        toast.success(`Claimed ${nft.dailyRewards.toFixed(2)} WATT rewards!`);
+        
+        setStakedNFTs(nfts => 
+          nfts.map(n => 
+            n.id === nftId
+              ? { ...n, dailyRewards: 0, canClaim: false }
+              : n
+          )
+        );
+      }
+    } catch (error) {
       toast.error('Failed to claim rewards');
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  const addComponent = (component: Component) => {
-    if (component.balance <= 0) {
-      toast.error('You don\'t own this component');
+  const stakeWattTokens = async () => {
+    if (!wattStakeAmount || parseFloat(wattStakeAmount) < 100) {
+      toast.error('Minimum stake is 100 WATT tokens');
       return;
     }
-
-    const existingComponent = selectedComponents.find(c => c.id === component.id);
-    if (existingComponent) {
-      toast.error('Component already added');
-      return;
-    }
-
-    setSelectedComponents([...selectedComponents, component]);
-    toast.success(`Added ${component.name}`);
-  };
-
-  const removeComponent = (componentId: number) => {
-    setSelectedComponents(selectedComponents.filter(c => c.id !== componentId));
-    toast.success('Component removed');
-  };
-
-  const calculateTotalStats = () => {
-    const baseHashpower = selectedComponents.reduce((sum, c) => sum + c.hashpower, 0);
-    const totalWattUsage = selectedComponents.reduce((sum, c) => sum + c.wattUsage, 0);
-    const totalStakeWeight = selectedComponents.reduce((sum, c) => sum + c.stakeWeight, 0);
     
-    // Apply Genesis Badge multiplier if present
-    const genesisBadge = selectedComponents.find(c => c.id === 2);
-    const multiplier = genesisBadge ? 1.1 : 1.0; // 10% boost
-    const totalHashpower = Math.floor(baseHashpower * multiplier);
-
-    return { totalHashpower, totalWattUsage, totalStakeWeight };
-  };
-
-  const buildMiningRig = async () => {
-    if (selectedComponents.length === 0) {
-      toast.error('Please select at least one component');
-      return;
-    }
-
-    setIsLoading(true);
     try {
-      // Simulate building mining rig
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      setIsLoading(true);
       
-      const stats = calculateTotalStats();
-      toast.success(`Mining rig built! Total hashpower: ${stats.totalHashpower}`);
-      setSelectedComponents([]);
+      // Show deployment reminder
+      toast.error('WATT Stake contract needs to be deployed first! Please deploy the contract to both Altcoinchain and Polygon.');
+      
     } catch (error) {
-      console.error('Error building mining rig:', error);
-      toast.error('Failed to build mining rig');
+      toast.error('Failed to stake WATT tokens');
     } finally {
       setIsLoading(false);
+      setShowWattStakeModal(false);
     }
   };
 
-  const deployMiningPool = async () => {
-    if (!poolFormData.poolName || !poolFormData.domainName || !poolFormData.feePayoutAddress) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
+  const renderBuildTab = () => (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="text-center">
+        <div className="flex justify-center mb-6">
+          <img 
+            src="https://mining.game/logo.png" 
+            alt="Mining Game Logo" 
+            className="h-32 w-auto object-contain"
+          />
+        </div>
+        <h1 className="text-4xl font-bold text-white mb-4">NFT Mining Rig Builder</h1>
+        <p className="text-xl text-gray-300">Configure your mining rigs using Mining Game NFT components</p>
+      </div>
 
-    setIsLoading(true);
-    try {
-      // Simulate pool deployment
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      toast.success(`Mining pool "${poolFormData.poolName}" deployed successfully!`);
-      setShowPoolDeployment(false);
-      setPoolFormData({
-        poolName: '',
-        domainName: '',
-        feePayoutAddress: '',
-        feeRate: '0',
-        logoImageUrl: '',
-        developerDonation: '0'
-      });
-    } catch (error) {
-      console.error('Error deploying mining pool:', error);
-      toast.error('Failed to deploy mining pool');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      {/* Action Buttons */}
+      <div className="flex justify-center space-x-4">
+        <button
+          onClick={() => setShowBuildModal(true)}
+          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-8 py-4 rounded-xl font-semibold text-white transition-all transform hover:scale-105 flex items-center space-x-2"
+        >
+          <Plus className="w-5 h-5" />
+          <span>Build New Mining Rig</span>
+        </button>
+        
+        <button
+          onClick={() => setShowStakeModal(true)}
+          className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 px-8 py-4 rounded-xl font-semibold text-white transition-all transform hover:scale-105 flex items-center space-x-2"
+        >
+          <Award className="w-5 h-5" />
+          <span>Stake Mining Game NFTs</span>
+        </button>
+        
+        <button
+          onClick={() => setShowWattStakeModal(true)}
+          className="bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 px-8 py-4 rounded-xl font-semibold text-white transition-all transform hover:scale-105 flex items-center space-x-2"
+        >
+          <DollarSign className="w-5 h-5" />
+          <span>Stake WATT Tokens</span>
+        </button>
+      </div>
 
-  const getComponentIcon = (type: string) => {
-    switch (type) {
-      case 'processor': return <Cpu className="w-5 h-5" />;
-      case 'gpu': return <Monitor className="w-5 h-5" />;
-      case 'case': return <HardDrive className="w-5 h-5" />;
-      case 'boost': return <Award className="w-5 h-5" />;
-      default: return <Settings className="w-5 h-5" />;
-    }
-  };
-
-  const renderMedia = (component: Component) => {
-    const { animation_url, image } = component;
-    
-    // Handle video files (.mp4)
-    if (animation_url?.includes('.mp4')) {
-      return (
-        <video
-          src={animation_url}
-          autoPlay
-          loop
-          muted
-          className="w-full h-48 object-cover rounded-lg"
-          onError={(e) => {
-            // Fallback to still image
-            const target = e.target as HTMLVideoElement;
-            target.style.display = 'none';
-            const img = target.nextElementSibling as HTMLImageElement;
-            if (img) img.style.display = 'block';
-          }}
-        />
-      );
-    }
-    
-    // Handle 3D models (.glb)
-    if (animation_url?.includes('.glb')) {
-      return (
-        <ThreeDViewer
-          modelUrl={animation_url}
-          fallbackImage={image}
-          className="w-full h-48"
-        />
-      );
-    }
-    
-    // Fallback to still image
-    return (
-      <img
-        src={image}
-        alt={component.name}
-        className="w-full h-48 object-cover rounded-lg"
-        onError={(e) => {
-          const target = e.target as HTMLImageElement;
-          target.src = 'https://via.placeholder.com/300x200?text=Loading...';
-        }}
-      />
-    );
-  };
-
-  const stats = calculateTotalStats();
-  const currentNetwork = NETWORKS[selectedNetwork];
-
-  // Theme classes
-  const bgClass = isDarkMode 
-    ? "min-h-screen bg-black text-white" 
-    : "min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white";
-  
-  const cardClass = isDarkMode
-    ? "bg-gray-900 border border-gray-700"
-    : "bg-white/10 backdrop-blur-lg border border-white/20";
-  
-  const buttonClass = isDarkMode
-    ? "bg-gray-800 hover:bg-gray-700 border border-gray-600"
-    : "bg-white/10 text-gray-300 hover:bg-white/20";
-
-  return (
-    <div className={bgClass}>
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-8 relative">
-          {/* Theme Toggle */}
-          <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className={`absolute top-0 right-0 p-3 rounded-lg transition-all ${buttonClass}`}
+      {/* Component Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        {MINING_GAME_COMPONENTS.map((component) => (
+          <motion.div
+            key={component.id}
+            className="bg-gray-900/80 backdrop-blur-lg rounded-2xl p-6 border border-gray-700 hover:border-purple-500 transition-all"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            {isDarkMode ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
-          </button>
-          
-          <div className="flex flex-col items-center justify-center mb-6">
-            <img 
-              src={MINING_GAME_LOGO} 
-              alt="Mining Game" 
-              className="w-32 h-32 mb-4"
-            />
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-              Mining Rig Builder
-            </h1>
-          </div>
-          <p className="text-xl text-gray-300">Build your NFT mining rig from Mining Game components</p>
-        </div>
-
-        {/* Network Selection & Wallet */}
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8 space-y-4 md:space-y-0">
-          <div className="flex flex-wrap gap-4">
-          <div className="flex bg-gray-800 rounded-lg p-1 space-x-1">
-              <button
-                key={key}
-                onClick={() => switchNetwork(key)}
-                className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-                  selectedNetwork === key
-                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
-                    : 'bg-white/10 text-gray-300 hover:bg-white/20'
-                }`}
-              >
-                {network.name}
-            <button
-              onClick={() => setActiveTab('manage')}
-              className={`px-6 py-3 rounded-md font-semibold transition-all ${
-                activeTab === 'manage'
-                  ? 'bg-purple-600 text-white'
-                  : 'text-gray-300 hover:text-white'
-              }`}
-            >
-              Manage Rigs
-            </button>
-              </button>
-            ))}
-            
-            {/* Action Buttons */}
-            <button
-              onClick={() => setShowNFTStaking(true)}
-              className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 px-6 py-3 rounded-lg font-semibold transition-all"
-            >
-              Stake Mining Game NFTs
-            </button>
-            
-            {(selectedNetwork === 'altcoinchain' || selectedNetwork === 'polygon') && (
-              <button
-                onClick={() => setShowPoolDeployment(true)}
-                className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 px-6 py-3 rounded-lg font-semibold transition-all"
-              >
-                Deploy Mining Pool
-              </button>
-            )}
-          </div>
-
-          <div className="flex items-center space-x-4">
-            {isConnected ? (
-              <div className="text-right">
-                <p className="text-sm text-gray-400">Connected Account</p>
-                <p className="font-mono text-sm">{account.slice(0, 6)}...{account.slice(-4)}</p>
-              </div>
-            ) : (
-              <button
-                onClick={connectWallet}
-                className="flex items-center space-x-2 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 px-6 py-3 rounded-lg font-semibold transition-all"
-              >
-                <Wallet className="w-5 h-5" />
-                <span>Connect Wallet</span>
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* WATT Balance */}
-        <div className={`${cardClass} rounded-2xl p-6 mb-8`}>
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center mb-2">
-                <img 
-                  src={WATT_LOGO} 
-                  alt="WATT" 
-                  className="w-8 h-8 mr-3"
+            <div className="relative mb-4">
+              {component.animation_url?.endsWith('.glb') ? (
+                <ThreeDViewer
+                  modelUrl={component.animation_url}
+                  fallbackImage={component.image}
+                  className="w-full h-48"
+                  zoomLevel={[3, 4, 5].includes(component.id) ? 2 : 1}
                 />
-                <h2 className="text-2xl font-bold">WATT Balance</h2>
-              </div>
-              <p className="text-4xl font-bold text-yellow-400">{wattBalance} WATT</p>
-              <p className="text-sm text-gray-400 mt-2">
-                Contract: {currentNetwork.wattContract}
-              </p>
-            </div>
-            <img 
-              src={WATT_LOGO} 
-              alt="WATT Logo" 
-              className="w-16 h-16"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Available Components */}
-          <div className="lg:col-span-2">
-            <h2 className="text-2xl font-bold mb-6">Available Components</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {availableComponents.map((component) => (
-                <motion.div
-                  key={component.id}
-                  whileHover={{ scale: 1.02 }}
-                  className={`${cardClass} rounded-2xl p-6 hover:border-purple-400/50 transition-all cursor-pointer`}
-                  onClick={() => addComponent(component)}
-                >
-                  <div className="relative overflow-hidden">
-                    {renderMedia(component)}
-                  </div>
-                  
-                  <div className="mt-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-lg font-bold">{component.name}</h3>
-                      {getComponentIcon(component.type)}
-                    </div>
-                    
-                    <p className="text-sm text-gray-400 mb-3 line-clamp-2">{component.description}</p>
-                    
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Brand:</span>
-                        <span className="font-semibold">{component.brand}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Generation:</span>
-                        <span className="font-semibold">{component.generation}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Token ID:</span>
-                        <span className="font-mono">#{component.id}</span>
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        NFT Contract: {currentNetwork.nftContract}
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Available:</span>
-                        <span className="font-bold text-green-400">{component.balance}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-2 mt-4 text-xs">
-                      <div className="bg-purple-600/20 rounded-lg p-2 text-center">
-                        <p className="text-purple-400">Hashpower</p>
-                        <p className="font-bold">{component.hashpower}</p>
-                      </div>
-                      <div className="bg-yellow-600/20 rounded-lg p-2 text-center">
-                        <p className="text-yellow-400">WATT/block</p>
-                        <p className="font-bold">{component.wattUsage}</p>
-                      </div>
-                      <div className="bg-blue-600/20 rounded-lg p-2 text-center">
-                        <p className="text-blue-400">Stake Weight</p>
-                        <p className="font-bold">{component.stakeWeight}</p>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
-          {/* Mining Rig Builder */}
-          <div>
-            <div className={`${cardClass} rounded-2xl p-6 mb-6`}>
-              <h2 className="text-2xl font-bold mb-6">Your Mining Rig</h2>
-              
-              {selectedComponents.length === 0 ? (
-                <div className="text-center py-12 text-gray-400">
-                  <Settings className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <p>Select components to build your rig</p>
-                </div>
+              ) : component.animation_url?.endsWith('.mp4') ? (
+                <video
+                  src={component.animation_url}
+                  className="w-full h-48 object-cover rounded-lg"
+                  autoPlay
+                  loop
+                  muted
+                />
               ) : (
-                <div className="space-y-4">
-                  {selectedComponents.map((component) => (
-                    <div
-                      key={component.id}
-                      className={`${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white/5 border-white/10'} rounded-xl p-4 border`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <img
-                            src={component.image}
-                            alt={component.name}
-                            className="w-12 h-12 rounded-lg object-cover"
-                          />
-                          <div>
-                            <p className="font-semibold">{component.name}</p>
-                            <p className="text-xs text-gray-400">{component.brand}</p>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => removeComponent(component.id)}
-                          className="text-red-400 hover:text-red-300 transition-colors"
-                        >
-                          <Minus className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <img
+                  src={component.image}
+                  alt={component.name}
+                  className="w-full h-48 object-cover rounded-lg"
+                />
               )}
             </div>
-
-            {/* Stats Summary */}
-            <div className={`${cardClass} rounded-2xl p-6 mb-6`}>
-              <h3 className="text-xl font-bold mb-4">Rig Statistics</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Total Hashpower:</span>
-                  <span className="font-bold text-purple-400">{stats.totalHashpower}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">WATT Usage/block:</span>
-                  <span className="font-bold text-yellow-400">{stats.totalWattUsage}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Stake Weight:</span>
-                  <span className="font-bold text-blue-400">{stats.totalStakeWeight}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Components:</span>
-                  <span className="font-bold">{selectedComponents.length}</span>
-                </div>
+            
+            <h3 className="text-lg font-bold text-white mb-2">{component.name}</h3>
+            
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-400">Hash Power:</span>
+                <span className="text-green-400 font-semibold">{component.hashPower}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">WATT Usage:</span>
+                <span className="text-yellow-400 font-semibold">{component.wattUsage}/block</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Stake Weight:</span>
+                <span className="text-blue-400 font-semibold">{component.stakeWeight}</span>
               </div>
             </div>
+            
+            {component.multiplier && (
+              <div className="mt-3 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-lg p-2">
+                <div className="text-center text-yellow-400 font-semibold text-sm">
+                  +{component.multiplier - 100}% Hash Power Boost
+                </div>
+              </div>
+            )}
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
 
-            {/* Build Button */}
-            <button
-              onClick={buildMiningRig}
-              disabled={selectedComponents.length === 0 || isLoading}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed px-6 py-4 rounded-lg font-semibold text-lg transition-all"
+  const renderManageTab = () => (
+    <div className="space-y-8">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold text-white mb-4">Manage Mining Rigs</h2>
+        <p className="text-gray-300">Control your mining operations and monitor performance</p>
+      </div>
+
+      {miningRigs.length === 0 ? (
+        <div className="text-center py-12">
+          <Zap className="w-16 h-16 text-gray-500 mx-auto mb-4" />
+          <p className="text-gray-400 text-lg">No mining rigs created yet</p>
+          <button
+            onClick={() => setShowBuildModal(true)}
+            className="mt-4 bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-lg text-white font-semibold transition-all"
+          >
+            Create Your First Rig
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {miningRigs.map((rig) => (
+            <motion.div
+              key={rig.id}
+              className="bg-gray-900/80 backdrop-blur-lg rounded-2xl p-6 border border-gray-700"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
             >
-              {isLoading ? 'Building Rig...' : 'Build Mining Rig'}
-            </button>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-white">{rig.name}</h3>
+                <div className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                  rig.isActive 
+                    ? 'bg-green-600 text-white' 
+                    : 'bg-gray-600 text-gray-300'
+                }`}>
+                  {rig.isActive ? 'Active' : 'Inactive'}
+                </div>
+              </div>
+              
+              <div className="space-y-3 mb-6">
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Hash Power:</span>
+                  <span className="text-green-400 font-semibold">{rig.totalHashPower.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">WATT/Block:</span>
+                  <span className="text-yellow-400 font-semibold">{rig.totalWattConsumption}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Daily Cost:</span>
+                  <span className="text-red-400 font-semibold">
+                    {(rig.totalWattConsumption * 172800).toLocaleString()} WATT
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Mining Pool:</span>
+                  <span className="text-blue-400 font-semibold">
+                    {rig.selectedPool === 'direct' ? 'Direct Mining' : `Pool ${rig.selectedPool}`}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Chain:</span>
+                  <span className="text-purple-400 font-semibold capitalize">{rig.selectedChain}</span>
+                </div>
+              </div>
+              
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => toggleRigActive(rig.id)}
+                  className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-all flex items-center justify-center space-x-2 ${
+                    rig.isActive
+                      ? 'bg-red-600 hover:bg-red-700 text-white'
+                      : 'bg-green-600 hover:bg-green-700 text-white'
+                  }`}
+                >
+                  {rig.isActive ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                  <span>{rig.isActive ? 'Stop' : 'Start'}</span>
+                </button>
+                
+                <button
+                  onClick={() => deleteRig(rig.id)}
+                  className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-all"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 
-            {/* Network Info */}
-            <div className={`mt-6 ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white/5 border-white/10'} rounded-xl p-4 border`}>
-              <h4 className="font-semibold mb-2">Network Information</h4>
-              <div className="space-y-1 text-xs text-gray-400">
-                <div className="flex justify-between">
-                  <span>Chain ID:</span>
-                  <span>{currentNetwork.chainId}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>NFT Contract:</span>
-                  <span className="font-mono">{currentNetwork.nftContract.slice(0, 10)}...</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>WATT Contract:</span>
-                  <span className="font-mono">{currentNetwork.wattContract.slice(0, 10)}...</span>
-                </div>
-                {selectedNetwork === 'localhost' && currentNetwork.nftContract === '0x0000000000000000000000000000000000000000' && (
-                  <div className="mt-2 p-2 bg-yellow-600/20 border border-yellow-600/30 rounded text-yellow-300">
-                    <p className="text-xs">
-                      <strong>Setup Required:</strong><br/>
-                      1. Run: <code>npx hardhat run scripts/deploy.js --network localhost</code><br/>
-                      2. Update contract addresses in the code with deployed addresses
-                    </p>
-                  </div>
+  const renderStakeTab = () => (
+    <div className="min-h-screen bg-black text-white">
+      {/* Header matching stake.mining.game */}
+      <div className="text-center py-8">
+        <div className="flex justify-center mb-6">
+          <img 
+            src="https://mining.game/logo.png" 
+            alt="Mining Game Logo" 
+            className="h-32 w-auto object-contain"
+          />
+        </div>
+        
+        {/* Navigation tabs */}
+        <div className="flex justify-center space-x-8 mb-8">
+          <span className="text-yellow-400 border-b-2 border-yellow-400 pb-2 cursor-pointer">Inventory</span>
+          <span className="text-green-400 hover:text-green-300 cursor-pointer">NFT-staking</span>
+          <span className="text-green-400 hover:text-green-300 cursor-pointer">Token-staking</span>
+          <span className="text-green-400 hover:text-green-300 cursor-pointer">Multi-send</span>
+        </div>
+        
+        <h2 className="text-3xl font-bold mb-4">Inventory</h2>
+      </div>
+
+      {/* NFT Grid matching stake.mining.game design */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 px-8">
+        {stakedNFTs.map((nft) => (
+          <motion.div
+            key={nft.id}
+            className={`bg-gray-900 rounded-2xl border-2 transition-all cursor-pointer ${
+              selectedNFTs.includes(nft.id)
+                ? 'border-green-400 bg-green-900/20'
+                : 'border-green-600 hover:border-green-400'
+            }`}
+            onClick={() => {
+              if (selectedNFTs.includes(nft.id)) {
+                setSelectedNFTs(selectedNFTs.filter(id => id !== nft.id));
+              } else {
+                setSelectedNFTs([...selectedNFTs, nft.id]);
+              }
+            }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            {/* Refresh button */}
+            <div className="flex justify-end p-2">
+              <RefreshCw className="w-5 h-5 text-gray-400 hover:text-white cursor-pointer" />
+            </div>
+            
+            {/* 3D Model or Image */}
+            <div className="px-4 pb-4">
+              {nft.animation_url?.endsWith('.glb') ? (
+                <ThreeDViewer
+                  modelUrl={nft.animation_url}
+                  fallbackImage={nft.image}
+                  className="w-full h-56 bg-gray-800 rounded-lg"
+                  zoomLevel={[3, 4, 5].includes(nft.id) ? 2 : 1}
+                />
+              ) : nft.animation_url?.endsWith('.mp4') ? (
+                <video
+                  src={nft.animation_url}
+                  className="w-full h-56 object-cover rounded-lg bg-gray-800"
+                  autoPlay
+                  loop
+                  muted
+                />
+              ) : (
+                <img
+                  src={nft.image}
+                  alt={nft.name}
+                  className="w-full h-56 object-cover rounded-lg bg-gray-800"
+                />
+              )}
+            </div>
+            
+            {/* NFT Info */}
+            <div className="px-4 pb-4">
+              <h3 className="text-lg font-bold text-center mb-4">{nft.name}</h3>
+              
+              {/* Daily Rewards */}
+              <div className="flex items-center justify-center space-x-2 mb-4">
+                <span className="text-green-400 text-sm">DAILY</span>
+                <span className="text-white font-bold">{nft.dailyRewards.toFixed(2)}</span>
+                <img src="/favicon.ico" alt="WATT" className="w-5 h-5" />
+              </div>
+              
+              {/* Action Button */}
+              <div className="text-center">
+                {!nft.isStaked ? (
+                  <button className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-all">
+                    STAKE
+                  </button>
+                ) : nft.canClaim ? (
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      claimRewards(nft.id);
+                    }}
+                    className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-6 rounded-lg transition-all"
+                  >
+                    CLAIM
+                  </button>
+                ) : (
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      unstakeNFT(nft.id);
+                    }}
+                    className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition-all"
+                  >
+                    UNSTAKE
+                  </button>
                 )}
               </div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderWattStakeTab = () => (
+    <div className="space-y-8">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold text-white mb-4">WATT Token Staking</h2>
+        <p className="text-gray-300">Stake WATT tokens to earn annual interest</p>
       </div>
 
-      {/* NFT Staking Modal */}
-      <AnimatePresence>
-        {showNFTStaking && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-            onClick={() => setShowNFTStaking(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-black border border-green-500/30 rounded-2xl p-8 max-w-7xl w-full max-h-[90vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center space-x-4">
-                  <img 
-                    src={WATT_LOGO} 
-                    alt="WATT" 
-                    className="w-8 h-8"
-                  />
-                  <div>
-                    <h2 className="text-3xl font-bold text-white">NFT Staking</h2>
-                    <p className="text-gray-400">Stake your Mining Game NFTs to earn WATT tokens</p>
-                  </div>
+      {/* Staking Parameters */}
+      <div className="bg-gray-900/80 backdrop-blur-lg rounded-2xl p-8 border border-gray-700 max-w-2xl mx-auto">
+        <h3 className="text-2xl font-bold text-white mb-6 text-center">Staking Parameters</h3>
+        
+        <div className="grid grid-cols-2 gap-6 mb-8">
+          <div className="text-center">
+            <div className="text-3xl font-bold text-green-400 mb-2">10%</div>
+            <div className="text-gray-400">Annual Interest Rate</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-blue-400 mb-2">365</div>
+            <div className="text-gray-400">Days Maturity</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-red-400 mb-2">25%</div>
+            <div className="text-gray-400">Early Withdrawal Penalty</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-purple-400 mb-2">100</div>
+            <div className="text-gray-400">Minimum WATT</div>
+          </div>
+        </div>
+
+        {/* Deployment Warning */}
+        <div className="bg-red-900/50 border border-red-500 rounded-lg p-4 mb-6">
+          <div className="flex items-center space-x-3">
+            <AlertTriangle className="w-6 h-6 text-red-400" />
+            <div>
+              <h4 className="font-semibold text-red-400">Contract Not Deployed</h4>
+              <p className="text-red-300 text-sm">
+                The WATT Stake contract needs to be deployed to both Altcoinchain and Polygon before staking is available.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Staking Calculator */}
+        <div className="space-y-4">
+          <div>
+            <label className="block text-gray-300 font-semibold mb-2">WATT Amount to Stake</label>
+            <input
+              type="number"
+              value={wattStakeAmount}
+              onChange={(e) => setWattStakeAmount(e.target.value)}
+              className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-purple-500 focus:outline-none"
+              placeholder="Enter WATT amount (minimum 100)"
+              min="100"
+            />
+          </div>
+          
+          {wattStakeAmount && parseFloat(wattStakeAmount) >= 100 && (
+            <div className="bg-gray-800 rounded-lg p-4">
+              <h4 className="font-semibold text-white mb-3">Estimated Returns</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Staked Amount:</span>
+                  <span className="text-white">{parseFloat(wattStakeAmount).toLocaleString()} WATT</span>
                 </div>
-                <button
-                  onClick={() => setShowNFTStaking(false)}
-                  className="text-gray-400 hover:text-white transition-colors text-2xl"
-                >
-                  ✕
-                </button>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Annual Interest (10%):</span>
+                  <span className="text-green-400">{(parseFloat(wattStakeAmount) * 0.1).toLocaleString()} WATT</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Monthly Interest:</span>
+                  <span className="text-green-400">{(parseFloat(wattStakeAmount) * 0.1 / 12).toFixed(2)} WATT</span>
+                </div>
               </div>
+            </div>
+          )}
+          
+          <button
+            onClick={stakeWattTokens}
+            disabled={!wattStakeAmount || parseFloat(wattStakeAmount) < 100}
+            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed px-6 py-4 rounded-lg font-semibold text-white transition-all"
+          >
+            Stake WATT Tokens
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
-              {/* Navigation Tabs */}
-              <div className="flex space-x-8 mb-8 border-b border-gray-700">
-                <button className="text-green-400 border-b-2 border-green-400 pb-2 font-semibold">
-                  Inventory
-                </button>
-                <button className="text-gray-400 hover:text-white pb-2 transition-colors">
-                  NFT-staking
-                </button>
-                <button className="text-gray-400 hover:text-white pb-2 transition-colors">
-                  Token-staking
-                </button>
-                <button className="text-gray-400 hover:text-white pb-2 transition-colors">
-                  Multi-send
-                </button>
-              </div>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+      <div className="container mx-auto px-4 py-8">
+        {/* Tab Navigation */}
+        <div className="flex justify-center mb-8">
+          <div className="bg-gray-900/50 backdrop-blur-lg rounded-2xl p-2 border border-gray-700">
+            {[
+              { key: 'build', label: 'Build Rigs', icon: Settings },
+              { key: 'manage', label: 'Manage Rigs', icon: Zap },
+              { key: 'stake', label: 'Stake NFTs', icon: Award },
+              { key: 'watt-stake', label: 'Stake WATT', icon: DollarSign }
+            ].map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                onClick={() => setActiveTab(key as any)}
+                className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center space-x-2 ${
+                  activeTab === key
+                    ? 'bg-purple-600 text-white'
+                    : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
 
-              {/* Inventory Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                {availableComponents.map((component) => {
-                  const isSelected = selectedStakingNFTs.includes(component.id);
-                  const dailyReward = stakingRewards[component.id] || 0;
-                  
-                  return (
-                    <motion.div
-                      key={component.id}
-                      whileHover={{ scale: 1.02 }}
-                      className={`bg-gray-900 border-2 rounded-2xl p-4 cursor-pointer transition-all ${
-                        isSelected 
-                          ? 'border-green-500 bg-green-500/10' 
-                          : 'border-green-500/30 hover:border-green-500/50'
-                      }`}
-                      onClick={() => {
-                        if (component.balance <= 0) {
-                          toast.error('You don\'t own this NFT');
-                          return;
-                        }
-                        
-                        if (isSelected) {
-                          setSelectedStakingNFTs(prev => prev.filter(id => id !== component.id));
-                        } else {
-                          setSelectedStakingNFTs(prev => [...prev, component.id]);
-                        }
-                      }}
-                    >
-                      {/* Refresh Button */}
-                      <div className="flex justify-end mb-2">
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            loadStakingRewards();
-                          }}
-                          className="text-gray-400 hover:text-white transition-colors"
-                        >
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-                          </svg>
-                        </button>
-                      </div>
+        {/* Tab Content */}
+        {activeTab === 'build' && renderBuildTab()}
+        {activeTab === 'manage' && renderManageTab()}
+        {activeTab === 'stake' && renderStakeTab()}
+        {activeTab === 'watt-stake' && renderWattStakeTab()}
 
-                      {/* 3D Model or Image */}
-                      <div className="relative mb-4">
-                        {component.animation_url?.endsWith('.glb') && [3, 4, 5].includes(component.id) ? (
-                          <ThreeDViewer
-                            modelUrl={component.animation_url}
-                            fallbackImage={component.image}
-                            className="w-full h-full"
-                          />
-                        ) : component.animation_url?.endsWith('.glb') ? (
-                          <ThreeDViewer
-                            modelUrl={component.animation_url}
-                            fallbackImage={component.image_small}
-                            className="w-full h-56"
-                            zoomLevel={1}
-                          />
-                        ) : component.animation_url?.includes('.mp4') ? (
-                          <video
-                            src={component.animation_url}
-                            autoPlay
-                            loop
-                            muted
-                            className="w-full h-56 object-cover rounded-lg bg-gray-800"
-                          />
-                        ) : (
-                          <img
-                            src={component.image}
-                            alt={component.name}
-                            className="w-full h-56 object-cover rounded-lg bg-gray-800"
-                          />
-                        )}
-                      </div>
+        {/* Build Mining Rig Modal */}
+        <AnimatePresence>
+          {showBuildModal && (
+            <motion.div
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.div
+                className="bg-gray-900 rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700"
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-white">Build Mining Rig</h2>
+                  <button
+                    onClick={() => setShowBuildModal(false)}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
 
-                      {/* Component Name */}
-                      <h3 className="text-white font-bold text-center mb-4 text-sm uppercase tracking-wider">
-                        {component.name}
-                      </h3>
+                {/* Rig Name */}
+                <div className="mb-6">
+                  <label className="block text-gray-300 font-semibold mb-2">Mining Rig Name</label>
+                  <input
+                    type="text"
+                    value={rigName}
+                    onChange={(e) => setRigName(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-purple-500 focus:outline-none"
+                    placeholder="Enter a name for your mining rig"
+                  />
+                </div>
 
-                      {/* Balance Display */}
-                      <div className="text-center mb-4">
-                        <div className="text-gray-400 text-xs mb-1">BALANCE</div>
-                        <div className="text-white font-bold text-lg">{component.balance}</div>
-                      </div>
-
-                      {/* Daily Rewards */}
-                      <div className="bg-gray-800 rounded-lg p-3 mb-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-gray-400 text-xs mb-1">DAILY REWARD</div>
-                            <div className="text-white font-bold">{dailyReward.toFixed(4)}</div>
-                          </div>
-                          <img 
-                            src={WATT_LOGO} 
-                            alt="WATT" 
-                            className="w-10 h-10"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Action Button */}
-                      <div className="text-center">
-                        {component.balance > 0 ? (
-                          dailyReward > 0 ? (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                claimRewards(component.id);
-                              }}
-                              className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-all"
-                            >
-                              CLAIM
-                            </button>
-                          ) : (
-                            <button
-                              className={`w-full font-bold py-2 px-4 rounded-lg transition-all ${
-                                isSelected
-                                  ? 'bg-red-600 hover:bg-red-700 text-white'
-                                  : 'bg-green-600 hover:bg-green-700 text-white'
-                              }`}
-                            >
-                              {isSelected ? 'UNSTAKE' : 'STAKE'}
-                            </button>
-                          )
-                        ) : (
-                          <button className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-all">
-                            BUY
-                          </button>
-                        )}
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-
-              {/* Staking Actions */}
-              {selectedStakingNFTs.length > 0 && (
-                <div className="mt-8 bg-gray-900 border border-green-500/30 rounded-xl p-6">
-                  <h3 className="text-xl font-bold text-white mb-4">
-                    Selected NFTs for Staking ({selectedStakingNFTs.length})
-                  </h3>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {selectedStakingNFTs.map(id => {
-                      const component = availableComponents.find(c => c.id === id);
+                {/* Component Selection */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-white mb-4">Select Components</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {MINING_GAME_COMPONENTS.map((component) => {
+                      const isSelected = selectedComponents.includes(component.id);
+                      const isGPU = component.componentType === 'gpu';
+                      const selectedGPUs = selectedComponents.filter(id => [4, 5].includes(id));
+                      const canSelect = !isSelected && (!isGPU || selectedGPUs.length < 2);
+                      
                       return (
-                        <span key={id} className="bg-green-600/20 text-green-400 px-3 py-1 rounded-full text-sm">
-                          {component?.name}
-                        </span>
+                        <div
+                          key={component.id}
+                          className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                            isSelected
+                              ? 'border-green-400 bg-green-900/20'
+                              : canSelect
+                              ? 'border-gray-600 hover:border-purple-400'
+                              : 'border-gray-700 opacity-50 cursor-not-allowed'
+                          }`}
+                          onClick={() => {
+                            if (canSelect) {
+                              setSelectedComponents([...selectedComponents, component.id]);
+                            } else if (isSelected) {
+                              setSelectedComponents(selectedComponents.filter(id => id !== component.id));
+                            }
+                          }}
+                        >
+                          <div className="flex items-center space-x-3">
+                            {isSelected && <Check className="w-5 h-5 text-green-400" />}
+                            <div>
+                              <div className="font-semibold text-white text-sm">{component.name}</div>
+                              <div className="text-xs text-gray-400">
+                                {component.hashPower} HP • {component.wattUsage} WATT
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       );
                     })}
                   </div>
-                  <div className="flex space-x-4">
-                    <button
-                      onClick={() => setSelectedStakingNFTs([])}
-                      className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition-all"
-                    >
-                      Clear Selection
-                    </button>
-                    <button
-                      onClick={stakeNFTs}
-                      disabled={isLoading}
-                      className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition-all"
-                    >
-                      {isLoading ? 'Staking...' : `Stake ${selectedStakingNFTs.length} NFTs`}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Mining Pool Deployment Modal */}
-      <AnimatePresence>
-        {showPoolDeployment && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-            onClick={() => setShowPoolDeployment(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className={`${cardClass} rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-3xl font-bold">Deploy Mining Pool</h2>
-                <button
-                  onClick={() => setShowPoolDeployment(false)}
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="mb-6 p-4 bg-yellow-600/20 border border-yellow-600/30 rounded-lg">
-                <p className="text-yellow-300 text-sm">
-                  <strong>Requirements:</strong> 100,000 WATT tokens will be locked for pool operation.
-                  Pool operators don't pay WATT fees for mining on nuChain L2.
-                </p>
-              </div>
-
-              <div className="space-y-6">
-                {/* Pool Name */}
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Mining Pool Name <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={poolFormData.poolName}
-                    onChange={(e) => setPoolFormData({...poolFormData, poolName: e.target.value})}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
-                    placeholder="Enter pool name (will be coded into contract)"
-                  />
-                </div>
-
-                {/* Domain Name */}
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Pool Domain Name <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={poolFormData.domainName}
-                    onChange={(e) => setPoolFormData({...poolFormData, domainName: e.target.value})}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
-                    placeholder="e.g., mypool.com"
-                  />
-                </div>
-
-                {/* Fee Payout Address */}
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Fee Payout Address <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={poolFormData.feePayoutAddress}
-                    onChange={(e) => setPoolFormData({...poolFormData, feePayoutAddress: e.target.value})}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
-                    placeholder="0x..."
-                  />
-                </div>
-
-                {/* Fee Rate */}
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Pool Fee Rate (0% preferred by users)
-                  </label>
-                  <div className="flex items-center space-x-4">
-                    <input
-                      type="number"
-                      min="0"
-                      max="10"
-                      step="0.1"
-                      value={poolFormData.feeRate}
-                      onChange={(e) => setPoolFormData({...poolFormData, feeRate: e.target.value})}
-                      className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
-                    />
-                    <span className="text-gray-400">% (max 10%)</span>
-                  </div>
-                  {parseFloat(poolFormData.feeRate) === 0 && (
-                    <p className="text-green-400 text-sm mt-1">✓ 0% fee - Most preferred by users!</p>
+                  
+                  {/* Validation Messages */}
+                  {validateRigConfiguration().length > 0 && (
+                    <div className="mt-4 bg-red-900/50 border border-red-500 rounded-lg p-3">
+                      <div className="text-red-400 text-sm">
+                        {validateRigConfiguration().map((error, index) => (
+                          <div key={index}>• {error}</div>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
 
-                {/* Pool Logo */}
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Pool Logo Image URL
-                  </label>
-                  <input
-                    type="url"
-                    value={poolFormData.logoImageUrl}
-                    onChange={(e) => setPoolFormData({...poolFormData, logoImageUrl: e.target.value})}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
-                    placeholder="https://example.com/logo.png"
-                  />
-                  <p className="text-gray-400 text-sm mt-1">
-                    This logo will be displayed next to your pool name in The Mining Game
-                  </p>
-                </div>
-
-                {/* Developer Donation */}
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Developer Donation (Optional)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={poolFormData.developerDonation}
-                    onChange={(e) => setPoolFormData({...poolFormData, developerDonation: e.target.value})}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
-                    placeholder="0"
-                  />
-                  <p className="text-gray-400 text-sm mt-1">
-                    Optional donation to developer: 0xFE4813250e155D4b746c039C179Df5Fe11C3240E
-                  </p>
-                </div>
-
-                {/* Cost Summary */}
-                <div className="bg-purple-600/20 border border-purple-600/30 rounded-lg p-4">
-                  <h3 className="font-semibold mb-3">Cost Summary</h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span>Pool Stake (Required):</span>
-                      <span className="font-bold">100,000 WATT</span>
+                {/* Mining Configuration */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-white mb-4">Mining Configuration</h3>
+                  
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-gray-300 font-semibold mb-2">Blockchain</label>
+                      <select
+                        value={selectedChain}
+                        onChange={(e) => setSelectedChain(e.target.value as 'polygon' | 'altcoinchain')}
+                        className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-purple-500 focus:outline-none"
+                      >
+                        <option value="polygon">Polygon</option>
+                        <option value="altcoinchain">Altcoinchain</option>
+                      </select>
                     </div>
-                    <div className="flex justify-between">
-                      <span>Developer Donation:</span>
-                      <span className="font-bold">{poolFormData.developerDonation || '0'} WATT</span>
-                    </div>
-                    <div className="border-t border-purple-600/30 pt-2 mt-2">
-                      <div className="flex justify-between font-bold">
-                        <span>Total Cost:</span>
-                        <span>{100000 + parseFloat(poolFormData.developerDonation || '0')} WATT</span>
-                      </div>
+                    
+                    <div>
+                      <label className="block text-gray-300 font-semibold mb-2">Mining Pool</label>
+                      <select
+                        value={selectedPool}
+                        onChange={(e) => setSelectedPool(e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-purple-500 focus:outline-none"
+                      >
+                        <option value="direct">Direct Mining (Full WATT Cost)</option>
+                        <option value="pool1">Elite Mining Pool (2.5% fee)</option>
+                        <option value="pool2">Pro Mining Pool (3.0% fee)</option>
+                        <option value="pool3">Community Pool (1.5% fee)</option>
+                      </select>
                     </div>
                   </div>
                 </div>
 
-                {/* Deploy Button */}
+                {/* Rig Stats Preview */}
+                {selectedComponents.length > 0 && (
+                  <div className="mb-6 bg-gray-800 rounded-lg p-4">
+                    <h4 className="font-semibold text-white mb-3">Rig Statistics</h4>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Total Hash Power:</span>
+                        <span className="text-green-400 font-semibold">{calculateRigStats().totalHashPower.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">WATT per Block:</span>
+                        <span className="text-yellow-400 font-semibold">{calculateRigStats().totalWattConsumption}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Daily WATT Cost:</span>
+                        <span className="text-red-400 font-semibold">
+                          {(calculateRigStats().totalWattConsumption * 172800).toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Components:</span>
+                        <span className="text-blue-400 font-semibold">{selectedComponents.length}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
                 <div className="flex space-x-4">
                   <button
-                    onClick={() => setShowPoolDeployment(false)}
-                    className="flex-1 bg-gray-600 hover:bg-gray-700 px-6 py-3 rounded-lg font-semibold transition-all"
+                    onClick={() => setShowBuildModal(false)}
+                    className="flex-1 px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition-all"
                   >
                     Cancel
                   </button>
                   <button
-                    onClick={deployMiningPool}
-                    disabled={isLoading || !poolFormData.poolName || !poolFormData.domainName || !poolFormData.feePayoutAddress}
-                    className="flex-1 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed px-6 py-3 rounded-lg font-semibold transition-all"
+                    onClick={createMiningRig}
+                    disabled={validateRigConfiguration().length > 0 || !rigName.trim() || isLoading}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-all"
                   >
-                    {isLoading ? 'Deploying...' : 'Deploy Pool'}
+                    {isLoading ? 'Creating...' : 'Create Mining Rig'}
                   </button>
                 </div>
-              </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
+
+        {/* Stake NFTs Modal */}
+        <AnimatePresence>
+          {showStakeModal && (
+            <motion.div
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.div
+                className="bg-gray-900 rounded-2xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-gray-700"
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-white">Stake Mining Game NFTs</h2>
+                  <button
+                    onClick={() => setShowStakeModal(false)}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                  {stakedNFTs.filter(nft => !nft.isStaked).map((nft) => (
+                    <div
+                      key={nft.id}
+                      className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                        selectedNFTs.includes(nft.id)
+                          ? 'border-green-400 bg-green-900/20'
+                          : 'border-gray-600 hover:border-purple-400'
+                      }`}
+                      onClick={() => {
+                        if (selectedNFTs.includes(nft.id)) {
+                          setSelectedNFTs(selectedNFTs.filter(id => id !== nft.id));
+                        } else {
+                          setSelectedNFTs([...selectedNFTs, nft.id]);
+                        }
+                      }}
+                    >
+                      <img src={nft.image} alt={nft.name} className="w-full h-32 object-cover rounded-lg mb-3" />
+                      <h4 className="font-semibold text-white text-sm">{nft.name}</h4>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex space-x-4">
+                  <button
+                    onClick={() => setShowStakeModal(false)}
+                    className="flex-1 px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={stakeNFTs}
+                    disabled={selectedNFTs.length === 0 || isLoading}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-all"
+                  >
+                    {isLoading ? 'Staking...' : `Stake ${selectedNFTs.length} NFTs`}
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* WATT Stake Modal */}
+        <AnimatePresence>
+          {showWattStakeModal && (
+            <motion.div
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.div
+                className="bg-gray-900 rounded-2xl p-8 max-w-lg w-full border border-gray-700"
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-white">Stake WATT Tokens</h2>
+                  <button
+                    onClick={() => setShowWattStakeModal(false)}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+
+                {/* Deployment Warning */}
+                <div className="bg-red-900/50 border border-red-500 rounded-lg p-4 mb-6">
+                  <div className="flex items-center space-x-3">
+                    <AlertTriangle className="w-6 h-6 text-red-400" />
+                    <div>
+                      <h4 className="font-semibold text-red-400">Contract Not Deployed</h4>
+                      <p className="text-red-300 text-sm">
+                        Deploy the WATT Stake contract first using: npm run deploy:watt-stake
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-gray-300 font-semibold mb-2">WATT Amount</label>
+                    <input
+                      type="number"
+                      value={wattStakeAmount}
+                      onChange={(e) => setWattStakeAmount(e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-purple-500 focus:outline-none"
+                      placeholder="Minimum 100 WATT"
+                      min="100"
+                    />
+                  </div>
+                  
+                  <div className="flex space-x-4">
+                    <button
+                      onClick={() => setShowWattStakeModal(false)}
+                      className="flex-1 px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={stakeWattTokens}
+                      disabled={!wattStakeAmount || parseFloat(wattStakeAmount) < 100}
+                      className="flex-1 px-6 py-3 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-all"
+                    >
+                      Stake WATT
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };
