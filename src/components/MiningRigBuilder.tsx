@@ -1112,8 +1112,8 @@ const MiningRigBuilder: React.FC = () => {
                       <div className="bg-gray-800 rounded-lg p-3 mb-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <div className="text-green-400 text-xs font-bold">DAILY</div>
-                            <div className="text-white font-bold">{dailyReward.toFixed(2)}</div>
+                            <div className="text-gray-400 text-xs mb-1">DAILY REWARD</div>
+                            <div className="text-white font-bold">{dailyReward.toFixed(4)}</div>
                           </div>
                           <img 
                             src={WATT_LOGO} 
