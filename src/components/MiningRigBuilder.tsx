@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Cpu, HardDrive, Monitor, Award, Plus, Minus, Settings, Wallet, ExternalLink } from 'lucide-react';
+import { Zap, Cpu, HardDrive, Monitor, Award, Plus, Minus, Settings, Wallet, ExternalLink, Sun, Moon } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ThreeDViewer from './ThreeDViewer';
+
+// Logo constants
+const WATT_LOGO = "https://github.com/The-Mining-Game/Graphics/blob/main/Logo%20Watt/Watt%20Logo%20-%20Illustrator/Watt-Logo128px.png?raw=true";
+const MINING_GAME_LOGO = "https://github.com/The-Mining-Game/Graphics/blob/main/Mining%20Game%20Logo/logo_1.png?raw=true";
 
 interface ComponentMetadata {
   name: string;
@@ -71,6 +75,7 @@ const MiningRigBuilder: React.FC = () => {
   const [selectedComponents, setSelectedComponents] = useState<Component[]>([]);
   const [availableComponents, setAvailableComponents] = useState<Component[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Component metadata with real Mining Game data
   const componentMetadata: Record<number, ComponentMetadata> = {
@@ -473,11 +478,42 @@ const MiningRigBuilder: React.FC = () => {
   const stats = calculateTotalStats();
   const currentNetwork = NETWORKS[selectedNetwork];
 
+  // Theme classes
+  const bgClass = isDarkMode 
+    ? "min-h-screen bg-black text-white" 
+    : "min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white";
+  
+  const cardClass = isDarkMode
+    ? "bg-gray-900 border border-gray-700"
+    : "bg-white/10 backdrop-blur-lg border border-white/20";
+  
+  const buttonClass = isDarkMode
+    ? "bg-gray-800 hover:bg-gray-700 border border-gray-600"
+    : "bg-white/10 text-gray-300 hover:bg-white/20";
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
+    <div className={bgClass}>
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 relative">
+          {/* Theme Toggle */}
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className={`absolute top-0 right-0 p-3 rounded-lg transition-all ${buttonClass}`}
+          >
+            {isDarkMode ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
+          </button>
+          
+          <div className="flex items-center justify-center mb-4">
+            <img 
+              src={MINING_GAME_LOGO} 
+              alt="Mining Game" 
+              className="w-16 h-16 mr-4"
+            />
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+              Mining Rig Builder
+            </h1>
+          </div>
           <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
             Mining Rig Builder
           </h1>
@@ -521,16 +557,27 @@ const MiningRigBuilder: React.FC = () => {
         </div>
 
         {/* WATT Balance */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 mb-8">
+        <div className={`${cardClass} rounded-2xl p-6 mb-8`}>
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold mb-2">WATT Balance</h2>
+              <div className="flex items-center mb-2">
+                <img 
+                  src={WATT_LOGO} 
+                  alt="WATT" 
+                  className="w-8 h-8 mr-3"
+                />
+                <h2 className="text-2xl font-bold">WATT Balance</h2>
+              </div>
               <p className="text-4xl font-bold text-yellow-400">{wattBalance} WATT</p>
               <p className="text-sm text-gray-400 mt-2">
                 Contract: {currentNetwork.wattContract}
               </p>
             </div>
-            <Zap className="w-16 h-16 text-yellow-400" />
+            <img 
+              src={WATT_LOGO} 
+              alt="WATT Logo" 
+              className="w-16 h-16"
+            />
           </div>
         </div>
 
@@ -543,7 +590,7 @@ const MiningRigBuilder: React.FC = () => {
                 <motion.div
                   key={component.id}
                   whileHover={{ scale: 1.02 }}
-                  className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:border-purple-400/50 transition-all cursor-pointer"
+                  className={`${cardClass} rounded-2xl p-6 hover:border-purple-400/50 transition-all cursor-pointer`}
                   onClick={() => addComponent(component)}
                 >
                   {renderMedia(component)}
@@ -600,7 +647,7 @@ const MiningRigBuilder: React.FC = () => {
 
           {/* Mining Rig Builder */}
           <div>
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 mb-6">
+            <div className={`${cardClass} rounded-2xl p-6 mb-6`}>
               <h2 className="text-2xl font-bold mb-6">Your Mining Rig</h2>
               
               {selectedComponents.length === 0 ? (
@@ -613,7 +660,7 @@ const MiningRigBuilder: React.FC = () => {
                   {selectedComponents.map((component) => (
                     <div
                       key={component.id}
-                      className="bg-white/5 rounded-xl p-4 border border-white/10"
+                      className={`${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white/5 border-white/10'} rounded-xl p-4 border`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
@@ -641,7 +688,7 @@ const MiningRigBuilder: React.FC = () => {
             </div>
 
             {/* Stats Summary */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 mb-6">
+            <div className={`${cardClass} rounded-2xl p-6 mb-6`}>
               <h3 className="text-xl font-bold mb-4">Rig Statistics</h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
@@ -673,7 +720,7 @@ const MiningRigBuilder: React.FC = () => {
             </button>
 
             {/* Network Info */}
-            <div className="mt-6 bg-white/5 rounded-xl p-4 border border-white/10">
+            <div className={`mt-6 ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white/5 border-white/10'} rounded-xl p-4 border`}>
               <h4 className="font-semibold mb-2">Network Information</h4>
               <div className="space-y-1 text-xs text-gray-400">
                 <div className="flex justify-between">

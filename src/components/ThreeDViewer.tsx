@@ -89,9 +89,11 @@ const ThreeDViewer: React.FC<ThreeDViewerProps> = ({
         style={{ background: 'transparent' }}
       >
         {/* Lighting */}
-        <ambientLight intensity={0.6} />
-        <directionalLight position={[10, 10, 5]} intensity={1} />
-        <pointLight position={[-10, -10, -5]} intensity={0.5} />
+        <ambientLight intensity={1.2} />
+        <directionalLight position={[10, 10, 5]} intensity={2} />
+        <directionalLight position={[-10, -10, -5]} intensity={1.5} />
+        <pointLight position={[0, 10, 0]} intensity={1} />
+        <pointLight position={[0, -10, 0]} intensity={0.8} />
         
         {/* 3D Model */}
         <Suspense fallback={<LoadingSpinner />}>
@@ -103,12 +105,12 @@ const ThreeDViewer: React.FC<ThreeDViewerProps> = ({
           enablePan={true}
           enableZoom={true}
           enableRotate={true}
-          autoRotate={false}
-          autoRotateSpeed={2}
+          autoRotate={true}
+          autoRotateSpeed={1}
           dampingFactor={0.05}
           enableDamping={true}
           maxDistance={10}
-          minDistance={2}
+          minDistance={1.5}
         />
       </Canvas>
       
