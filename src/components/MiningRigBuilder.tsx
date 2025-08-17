@@ -896,7 +896,7 @@ const MiningRigBuilder: React.FC = () => {
                   {selectedComponents.map((component) => (
                     <div
                       key={component.id}
-                      className={\`${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white/5 border-white/10'} rounded-xl p-4 border`}
+                      className={`${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white/5 border-white/10'} rounded-xl p-4 border`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
