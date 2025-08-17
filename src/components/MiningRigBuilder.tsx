@@ -590,7 +590,9 @@ const MiningRigBuilder: React.FC = () => {
                   className={`${cardClass} rounded-2xl p-6 hover:border-purple-400/50 transition-all cursor-pointer`}
                   onClick={() => addComponent(component)}
                 >
-                  {renderMedia(component)}
+                  <div className={component.id === 3 || component.id === 4 || component.id === 5 ? "transform scale-150 mb-8" : ""}>
+                    {renderMedia(component)}
+                  </div>
                   
                   <div className="mt-4">
                     <div className="flex items-center justify-between mb-2">
