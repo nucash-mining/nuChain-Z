@@ -110,8 +110,11 @@ const MiningRigBuilder: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showPoolDeployment, setShowPoolDeployment] = useState(false);
   const [showNFTStaking, setShowNFTStaking] = useState(false);
+  const [showWATTStaking, setShowWATTStaking] = useState(false);
   const [selectedStakingNFTs, setSelectedStakingNFTs] = useState<number[]>([]);
   const [stakingRewards, setStakingRewards] = useState<Record<number, number>>({});
+  const [wattStakeAmount, setWattStakeAmount] = useState('');
+  const [stakingPeriod, setStakingPeriod] = useState('365'); // days
   const [poolFormData, setPoolFormData] = useState({
     poolName: '',
     domainName: '',
@@ -744,6 +747,13 @@ const MiningRigBuilder: React.FC = () => {
               Stake Mining Game NFTs
             </button>
             
+            <button
+              onClick={() => setShowWATTStaking(true)}
+              className="bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 px-6 py-3 rounded-lg font-semibold transition-all"
+            >
+              Stake WATT Tokens
+            </button>
+            
             {(selectedNetwork === 'altcoinchain' || selectedNetwork === 'polygon') && (
               <button
                 onClick={() => setShowPoolDeployment(true)}
@@ -1186,6 +1196,157 @@ const MiningRigBuilder: React.FC = () => {
                   </div>
                 </div>
               )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* WATT Token Staking Modal */}
+      <AnimatePresence>
+        {showWATTStaking && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            onClick={() => setShowWATTStaking(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-gray-900 rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-white">Stake WATT Tokens</h2>
+                <button
+                  onClick={() => setShowWATTStaking(false)}
+                  className="text-gray-400 hover:text-white text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+              
+              {/* Contract Deployment Reminder */}
+              <div className="bg-yellow-900/30 border border-yellow-600/50 rounded-xl p-6 mb-6">
+                <div className="flex items-start space-x-3">
+                  <div className="text-yellow-400 text-xl">⚠️</div>
+                  <div>
+                    <h3 className="text-yellow-400 font-semibold mb-2">Contract Deployment Required</h3>
+                    <p className="text-yellow-200 text-sm mb-3">
+                      The WATT Stake contract needs to be deployed to both Altcoinchain and Polygon 
+                      using the same contract address and salt for cross-chain compatibility.
+                    </p>
+                    <div className="bg-gray-800 rounded-lg p-3 font-mono text-xs text-gray-300">
+                      <div>Altcoinchain: Deploy to chain ID 2330</div>
+                      <div>Polygon: Deploy to chain ID 137</div>
+                      <div>Salt: Use CREATE2 for deterministic addresses</div>
+                    </div>
+                    <p className="text-yellow-200 text-sm mt-3">
+                      Run: <code className="bg-gray-800 px-2 py-1 rounded text-yellow-300">npm run deploy:watt-stake</code>
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Staking Parameters */}
+              <div className="bg-gray-800 rounded-xl p-6 mb-6">
+                <h3 className="text-white font-semibold mb-4">Staking Parameters</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-400">Annual Interest Rate:</span>
+                    <span className="text-green-400 font-semibold ml-2">10%</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Minimum Stake:</span>
+                    <span className="text-white font-semibold ml-2">100 WATT</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Maturity Period:</span>
+                    <span className="text-white font-semibold ml-2">365 days</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Early Withdrawal Penalty:</span>
+                    <span className="text-red-400 font-semibold ml-2">25%</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Staking Form */}
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-white font-medium mb-2">WATT Amount to Stake</label>
+                  <input
+                    type="number"
+                    value={wattStakeAmount}
+                    onChange={(e) => setWattStakeAmount(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-yellow-500 focus:outline-none"
+                    placeholder="Enter WATT amount (minimum 100)"
+                    min="100"
+                  />
+                  <p className="text-gray-400 text-sm mt-2">
+                    Minimum: 100 WATT • Your balance: {wattBalance} WATT
+                  </p>
+                </div>
+                
+                <div>
+                  <label className="block text-white font-medium mb-2">Staking Period</label>
+                  <select
+                    value={stakingPeriod}
+                    onChange={(e) => setStakingPeriod(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
+                  >
+                    <option value="365">1 Year (365 days) - 10% APR</option>
+                    <option value="730">2 Years (730 days) - 10% APR</option>
+                    <option value="1095">3 Years (1095 days) - 10% APR</option>
+                  </select>
+                </div>
+                
+                {/* Estimated Rewards */}
+                {wattStakeAmount && parseFloat(wattStakeAmount) >= 100 && (
+                  <div className="bg-green-900/30 border border-green-600/50 rounded-xl p-4">
+                    <h4 className="text-green-400 font-semibold mb-2">Estimated Rewards</h4>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-300">Stake Amount:</span>
+                        <span className="text-white font-semibold">{wattStakeAmount} WATT</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-300">Annual Interest (10%):</span>
+                        <span className="text-green-400 font-semibold">
+                          {(parseFloat(wattStakeAmount) * 0.1).toFixed(2)} WATT
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-300">Total after {Math.floor(parseInt(stakingPeriod) / 365)} year(s):</span>
+                        <span className="text-green-400 font-semibold">
+                          {(parseFloat(wattStakeAmount) * (1 + 0.1 * parseInt(stakingPeriod) / 365)).toFixed(2)} WATT
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex space-x-4">
+                  <button
+                    onClick={() => {
+                      // TODO: Implement WATT staking when contract is deployed
+                      alert('WATT Stake contract needs to be deployed first. Please run: npm run deploy:watt-stake');
+                    }}
+                    disabled={!wattStakeAmount || parseFloat(wattStakeAmount) < 100}
+                    className="flex-1 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-semibold transition-all"
+                  >
+                    Stake WATT Tokens
+                  </button>
+                  <button
+                    onClick={() => setShowWATTStaking(false)}
+                    className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition-all"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
             </motion.div>
           </motion.div>
         )}

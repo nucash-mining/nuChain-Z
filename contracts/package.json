@@ -9,6 +9,9 @@
     "deploy:altcoinchain": "hardhat run scripts/deploy.js --network altcoinchain",
     "deploy:polygon": "hardhat run scripts/deploy.js --network polygon",
     "deploy:localhost": "hardhat run scripts/deploy.js --network localhost",
+    "deploy:watt-stake": "hardhat run scripts/deploy-watt-stake.js",
+    "deploy:watt-stake:altcoinchain": "hardhat run scripts/deploy-watt-stake.js --network altcoinchain",
+    "deploy:watt-stake:polygon": "hardhat run scripts/deploy-watt-stake.js --network polygon",
     "verify:altcoinchain": "hardhat verify --network altcoinchain",
     "verify:polygon": "hardhat verify --network polygon",
     "node": "hardhat node"
