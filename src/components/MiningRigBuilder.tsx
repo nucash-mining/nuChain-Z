@@ -108,6 +108,15 @@ const MiningRigBuilder: React.FC = () => {
   const [availableComponents, setAvailableComponents] = useState<Component[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [showPoolDeployment, setShowPoolDeployment] = useState(false);
+  const [poolFormData, setPoolFormData] = useState({
+    poolName: '',
+    domainName: '',
+    feePayoutAddress: '',
+    feeRate: '0',
+    logoImageUrl: '',
+    developerDonation: '0'
+  });
 
   // Component metadata with real Mining Game data
   const componentMetadata: Record<number, ComponentMetadata> = {
