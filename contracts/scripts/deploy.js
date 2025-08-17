@@ -13,15 +13,18 @@ async function main() {
   // Contract addresses (update these with actual addresses)
   let WATT_TOKEN_ADDRESS;
   let GENESIS_BADGE_ADDRESS;
+  let MINING_GAME_BASE_CONTRACT;
   
   if (network.chainId === 2330) {
     // Altcoinchain addresses
-    WATT_TOKEN_ADDRESS = "0x..."; // Replace with actual WATT token address on Altcoinchain
-    GENESIS_BADGE_ADDRESS = "0x..."; // Replace with actual Genesis Badge address
+    WATT_TOKEN_ADDRESS = "0x..."; // Update with actual WATT token address on Altcoinchain
+    GENESIS_BADGE_ADDRESS = "0x..."; // Update with actual Genesis Badge address
+    MINING_GAME_BASE_CONTRACT = "0x..."; // Update with Mining Game contract on Altcoinchain
   } else if (network.chainId === 137) {
     // Polygon addresses
-    WATT_TOKEN_ADDRESS = "0x..."; // Replace with actual WATT token address on Polygon
-    GENESIS_BADGE_ADDRESS = "0x..."; // Replace with actual Genesis Badge address
+    WATT_TOKEN_ADDRESS = "0x..."; // Update with actual WATT token address on Polygon
+    GENESIS_BADGE_ADDRESS = "0x970a8b10147e3459d3cbf56329b76ac18d329728"; // From WATTxchange repo
+    MINING_GAME_BASE_CONTRACT = "0x970a8b10147e3459d3cbf56329b76ac18d329728"; // From WATTxchange repo
   } else {
     // Local/testnet - deploy mock tokens
     console.log("Deploying mock tokens for testing...");
@@ -66,10 +69,10 @@ async function main() {
   
   // Add some approved component contracts (mock addresses for testing)
   const mockComponentContracts = [
-    "0x1111111111111111111111111111111111111111", // GPU contract
-    "0x2222222222222222222222222222222222222222", // CPU contract
-    "0x3333333333333333333333333333333333333333", // Memory contract
-    "0x4444444444444444444444444444444444444444", // Storage contract
+    MINING_GAME_BASE_CONTRACT || "0x970a8b10147e3459d3cbf56329b76ac18d329728", // Mining Game contract
+    "0x1111111111111111111111111111111111111111", // Additional component contracts
+    "0x2222222222222222222222222222222222222222",
+    "0x3333333333333333333333333333333333333333",
   ];
   
   for (const contractAddr of mockComponentContracts) {
@@ -78,9 +81,10 @@ async function main() {
   }
   
   // Set component values for testing
-  await nftMiningRig.setComponentValues(1, "RTX 4090", 2000000, 450); // GPU
-  await nftMiningRig.setComponentValues(0, "Intel i9-13900K", 500000, 125); // CPU
-  await nftMiningRig.setComponentValues(2, "DDR5-6000 32GB", 50000, 20); // Memory
+  await nftMiningRig.setComponentValues(1, "GP50 GPU", 2000000, 450); // Legendary GPU
+  await nftMiningRig.setComponentValues(1, "TX120 GPU", 1500000, 320); // Epic GPU
+  await nftMiningRig.setComponentValues(0, "XL1 Processor", 500000, 125); // Rare CPU
+  await nftMiningRig.setComponentValues(7, "Free Mint PC Case", 0, 0); // Common Case
   console.log("Set initial component values");
   
   console.log("\n=== Deployment Summary ===");
@@ -95,6 +99,7 @@ async function main() {
     network: network.name,
     chainId: network.chainId,
     deployer: deployer.address,
+    miningGameContract: MINING_GAME_BASE_CONTRACT,
     contracts: {
       wattToken: WATT_TOKEN_ADDRESS,
       genesisBadge: GENESIS_BADGE_ADDRESS,
