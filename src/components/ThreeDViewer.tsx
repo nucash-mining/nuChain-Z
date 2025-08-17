@@ -8,10 +8,12 @@ interface ThreeDViewerProps {
   modelUrl: string;
   fallbackImage: string;
   className?: string;
+  zoomLevel?: number;
 }
 
 interface ModelProps {
   url: string;
+  zoomLevel?: number;
 }
 
 const Model: React.FC<ModelProps> = ({ url }) => {
@@ -30,7 +32,8 @@ const Model: React.FC<ModelProps> = ({ url }) => {
       meshRef.current.position.y = Math.sin(state.clock.elapsedTime) * 0.1;
       
       // Scale slightly on hover
-      const targetScale = hovered ? 1.1 : 1;
+      const baseScale = zoomLevel;
+      const targetScale = hovered ? baseScale * 1.1 : baseScale;
       meshRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
     }
   });
@@ -68,7 +71,8 @@ const ErrorFallback: React.FC<{ image: string; name: string }> = ({ image, name 
 const ThreeDViewer: React.FC<ThreeDViewerProps> = ({ 
   modelUrl, 
   fallbackImage, 
-  className = "w-full h-48" 
+  className = "w-full h-48",
+  zoomLevel = 1
 }) => {
   const [error, setError] = useState(false);
 
@@ -85,7 +89,7 @@ const ThreeDViewer: React.FC<ThreeDViewerProps> = ({
   return (
     <div className={`${className} relative bg-gradient-to-br from-purple-900/20 to-blue-900/20 rounded-lg overflow-hidden`}>
       <Canvas
-        camera={{ position: [0, 0, 5], fov: 50 }}
+        camera={{ position: [0, 0, 5 / zoomLevel], fov: 50 }}
         style={{ background: 'transparent' }}
       >
         {/* Lighting */}
@@ -97,7 +101,7 @@ const ThreeDViewer: React.FC<ThreeDViewerProps> = ({
         
         {/* 3D Model */}
         <Suspense fallback={<LoadingSpinner />}>
-          <Model url={modelUrl} />
+          <Model url={modelUrl} zoomLevel={zoomLevel} />
         </Suspense>
         
         {/* Controls */}
@@ -109,8 +113,8 @@ const ThreeDViewer: React.FC<ThreeDViewerProps> = ({
           autoRotateSpeed={1}
           dampingFactor={0.05}
           enableDamping={true}
-          maxDistance={10}
-          minDistance={1.5}
+          maxDistance={10 / zoomLevel}
+          minDistance={1.5 / zoomLevel}
         />
       </Canvas>
       
