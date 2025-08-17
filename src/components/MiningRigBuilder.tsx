@@ -95,7 +95,7 @@ const MiningRigBuilder: React.FC = () => {
     if (chainId === 31337) { // Localhost
       try {
         // Try to load deployment info for localhost
-        const deploymentInfo = require('../../contracts/deployments/localhost-31337.json');
+        wattToken: '0x6645143e49B3a15d8F205658903a55E520444698'
         return {
           nftContract: deploymentInfo.contracts.genesisBadge,
           wattToken: deploymentInfo.contracts.wattToken,
