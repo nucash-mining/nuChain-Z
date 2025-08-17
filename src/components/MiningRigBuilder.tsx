@@ -110,11 +110,11 @@ const MiningRigBuilder: React.FC = () => {
   const [showContractModal, setShowContractModal] = useState(false);
   const [rigConfiguration, setRigConfiguration] = useState({
     name: '',
-  const [showFreeMintModal, setShowFreeMintModal] = useState(false);
     payoutAddress: '',
     wattAllowance: '',
     stakingAddress: ''
   });
+  const [showFreeMintModal, setShowFreeMintModal] = useState(false);
   const [showStakeModal, setShowStakeModal] = useState(false);
   const [selectedRigForStaking, setSelectedRigForStaking] = useState<number | null>(null);
   const [savedRigs, setSavedRigs] = useState<any[]>([]);
@@ -646,37 +646,7 @@ const MiningRigBuilder: React.FC = () => {
     }
 
     // Show contract interaction modal
-    // Generate NFT metadata for the mining rig configuration
-    const rigNFTData = generateRigNFTData();
-    setContractData(prev => ({
-      ...prev,
-      nftMetadata: rigNFTData
-    }));
-    
     setShowContractModal(true);
-  };
-
-  const generateRigNFTData = () => {
-    const totalHashPower = calculateTotalHashPower();
-    const totalWattCost = calculateTotalWattCost();
-    const genesisBadgeMultiplier = selectedComponents[2] > 0 ? 150 : 100; // 150% if Genesis Badge
-    const efficiency = Math.round((totalHashPower / totalWattCost) * 100) / 100;
-    
-    return {
-      name: `Mining Rig Configuration #${Date.now()}`,
-      description: `Mining rig with ${totalHashPower.toLocaleString()} H/s hash power`,
-      attributes: [
-        { trait_type: 'Hash Power', value: totalHashPower },
-        { trait_type: 'WATT Consumption', value: totalWattCost },
-        { trait_type: 'Efficiency (H/s per W)', value: efficiency },
-        { trait_type: 'Genesis Badge Multiplier', value: `${genesisBadgeMultiplier}%` },
-        { trait_type: 'Component Count', value: Object.values(selectedComponents).reduce((a, b) => a + b, 0) },
-        { trait_type: 'GPU Count', value: selectedComponents[4] + selectedComponents[5] }
-      ],
-      image: '/images/mining-rig-nft.png',
-      external_url: 'https://mining.game',
-      background_color: '1a1b23'
-    };
   };
 
   const handleContractSubmit = async () => {
@@ -689,6 +659,7 @@ const MiningRigBuilder: React.FC = () => {
       const newRig = {
         id: Date.now(),
         name: rigConfiguration.name,
+        nftTokenId: Math.floor(Math.random() * 10000), // Simulated NFT token ID
         components: selectedComponents,
         totalHashpower: stats.totalHashpower,
         totalWattUsage: stats.totalWattUsage,
@@ -696,7 +667,8 @@ const MiningRigBuilder: React.FC = () => {
         payoutAddress: rigConfiguration.payoutAddress,
         wattAllowance: rigConfiguration.wattAllowance,
         network: selectedNetwork,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        nftMetadata: rigConfiguration.nftMetadata
       };
       
       setSavedRigs(prev => [...prev, newRig]);
@@ -908,7 +880,7 @@ const MiningRigBuilder: React.FC = () => {
             
             {(selectedNetwork === 'altcoinchain' || selectedNetwork === 'polygon') && (
               <button
-                onClick={() => setShowMiningPoolModal(true)}
+                onClick={() => setShowPoolDeployment(true)}
                 className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 px-6 py-3 rounded-lg font-semibold transition-all"
               >
                 Deploy Mining Pool
