@@ -96,18 +96,18 @@ const MiningRigBuilder: React.FC = () => {
       try {
         // Try to load deployment info for localhost
         return {
-          nftContract: '0x5FbDB2315678afecb367f032d93F642f64180aa3', // Default hardhat address
-          wattToken: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
-          wattTokenDisplay: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
-          nftStaking: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
-          miningRigContract: '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0',
-          miningPoolContract: '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9',
+          nftContract: deploymentInfo.contracts.genesisBadge,
+          wattToken: deploymentInfo.contracts.wattToken,
+          wattTokenDisplay: deploymentInfo.contracts.wattToken,
+          nftStaking: deploymentInfo.contracts.genesisBadge, // Use same for testing
+          miningRigContract: deploymentInfo.contracts.nftMiningRig,
+          miningPoolContract: deploymentInfo.contracts.miningPoolOperator,
           components: {
-            pcCase: { contract: '0x5FbDB2315678afecb367f032d93F642f64180aa3', tokenId: 1 },
-            xl1Processor: { contract: '0x5FbDB2315678afecb367f032d93F642f64180aa3', tokenId: 3 },
-            tx120Gpu: { contract: '0x5FbDB2315678afecb367f032d93F642f64180aa3', tokenId: 4 },
-            gp50Gpu: { contract: '0x5FbDB2315678afecb367f032d93F642f64180aa3', tokenId: 5 },
-            genesisBadge: { contract: '0x5FbDB2315678afecb367f032d93F642f64180aa3', tokenId: 2 }
+            pcCase: { contract: deploymentInfo.contracts.genesisBadge, tokenId: 1 },
+            xl1Processor: { contract: deploymentInfo.contracts.genesisBadge, tokenId: 3 },
+            tx120Gpu: { contract: deploymentInfo.contracts.genesisBadge, tokenId: 4 },
+            gp50Gpu: { contract: deploymentInfo.contracts.genesisBadge, tokenId: 5 },
+            genesisBadge: { contract: deploymentInfo.contracts.genesisBadge, tokenId: 2 }
           }
         };
       } catch (error) {
@@ -144,7 +144,9 @@ const MiningRigBuilder: React.FC = () => {
           tx120Gpu: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 2 },
           gp50Gpu: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 3 },
           genesisBadge: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 2 }
-        }
+        },
+        wattContract: '0x6645143e49B3a15d8F205658903a55E520444698',
+        stakingContract: '0xe463045318393095F11ed39f1a98332aBCc1A7b1'
       };
     } else if (chainId === 137) { // Polygon
       return {
@@ -160,7 +162,9 @@ const MiningRigBuilder: React.FC = () => {
           tx120Gpu: { contract: '0x970a8b10147e3459d3cbf56329b76ac18d329728', tokenId: 2 },
           gp50Gpu: { contract: '0x970a8b10147e3459d3cbf56329b76ac18d329728', tokenId: 3 },
           genesisBadge: { contract: '0x970a8b10147e3459d3cbf56329b76ac18d329728', tokenId: 2 }
-        }
+        },
+        wattContract: '0xE960d5076cd3169C343Ee287A2c3380A222e5839',
+        stakingContract: '0x0000000000000000000000000000000000000000'
       };
     }
     return null;
