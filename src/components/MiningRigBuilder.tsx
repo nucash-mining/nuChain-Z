@@ -46,6 +46,12 @@ interface NetworkConfig {
   wattContract: string;
   stakingContract: string;
   rpcUrl: string;
+  nativeCurrency: {
+    name: string;
+    symbol: string;
+    decimals: number;
+  };
+  blockExplorerUrls?: string[];
 }
 
 const NETWORKS: Record<string, NetworkConfig> = {
@@ -55,7 +61,13 @@ const NETWORKS: Record<string, NetworkConfig> = {
     nftContract: '0x5FbDB2315678afecb367f032d93F642f64180aa3', // Replace with actual deployed address
     wattContract: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512', // Replace with actual deployed address
     stakingContract: '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0', // Replace with actual deployed address
-    rpcUrl: 'http://localhost:8545'
+    rpcUrl: 'http://localhost:8545',
+    nativeCurrency: {
+      name: 'Ether',
+      symbol: 'ETH',
+      decimals: 18
+    },
+    blockExplorerUrls: ['http://localhost:8545']
   },
   altcoinchain: {
     chainId: 2330,
@@ -63,7 +75,13 @@ const NETWORKS: Record<string, NetworkConfig> = {
     nftContract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2',
     wattContract: '0x6645143e49B3a15d8F205658903a55E520444698',
     stakingContract: '0xe463045318393095F11ed39f1a98332aBCc1A7b1',
-    rpcUrl: 'https://rpc.altcoinchain.network'
+    rpcUrl: 'https://rpc.altcoinchain.network',
+    nativeCurrency: {
+      name: 'Altcoin',
+      symbol: 'ALT',
+      decimals: 18
+    },
+    blockExplorerUrls: ['https://explorer.altcoinchain.network']
   },
   polygon: {
     chainId: 137,
@@ -71,7 +89,13 @@ const NETWORKS: Record<string, NetworkConfig> = {
     nftContract: '0x970a8b10147e3459d3cbf56329b76ac18d329728',
     wattContract: '0xE960d5076cd3169C343Ee287A2c3380A222e5839',
     stakingContract: '0xcbfcA68D10B2ec60a0FB2Bc58F7F0Bfd32CD5275',
-    rpcUrl: 'https://polygon-rpc.com'
+    rpcUrl: 'https://polygon-rpc.com',
+    nativeCurrency: {
+      name: 'Polygon',
+      symbol: 'MATIC',
+      decimals: 18
+    },
+    blockExplorerUrls: ['https://polygonscan.com']
   }
 };
 
@@ -315,7 +339,29 @@ const MiningRigBuilder: React.FC = () => {
       toast.success(`Switched to ${network.name}`);
     } catch (error: any) {
       if (error.code === 4902) {
-        toast.error(`Please add ${network.name} to your wallet manually`);
+        // Network not added to wallet, try to add it
+        try {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: `0x${network.chainId.toString(16)}`,
+              chainName: network.name,
+              nativeCurrency: network.nativeCurrency,
+              rpcUrls: [network.rpcUrl],
+              blockExplorerUrls: network.blockExplorerUrls
+            }]
+          });
+          // After adding, try to switch again
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: `0x${network.chainId.toString(16)}` }],
+          });
+          setSelectedNetwork(networkKey);
+          toast.success(`Added and switched to ${network.name}`);
+        } catch (addError) {
+          console.error('Error adding network:', addError);
+          toast.error(`Failed to add ${network.name} to wallet`);
+        }
       } else {
         console.error('Error switching network:', error);
         toast.error('Failed to switch network');
