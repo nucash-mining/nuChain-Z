@@ -705,6 +705,16 @@ const MiningRigBuilder: React.FC = () => {
           >
             {isDarkMode ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
           </button>
+          <button
+            onClick={() => setActiveTab('mining-pools')}
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+              activeTab === 'mining-pools'
+                ? 'bg-purple-600 text-white shadow-lg'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            Mining Pools
+          </button>
           
           <div className="flex flex-col items-center justify-center mb-6">
             <img 
