@@ -1539,7 +1539,7 @@ const MiningRigBuilder: React.FC = () => {
                           )
                         ) : (
                           <button className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-all">
-                            {component.id === 1 ? 'Free Mint' : 'Buy on OpenSea'}
+                            BUY
                           </button>
                         )}
                       </div>
