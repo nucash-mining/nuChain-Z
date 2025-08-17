@@ -659,7 +659,6 @@ const MiningRigBuilder: React.FC = () => {
       const newRig = {
         id: Date.now(),
         name: rigConfiguration.name,
-        nftTokenId: Math.floor(Math.random() * 10000), // Simulated NFT token ID
         components: selectedComponents,
         totalHashpower: stats.totalHashpower,
         totalWattUsage: stats.totalWattUsage,
@@ -667,8 +666,7 @@ const MiningRigBuilder: React.FC = () => {
         payoutAddress: rigConfiguration.payoutAddress,
         wattAllowance: rigConfiguration.wattAllowance,
         network: selectedNetwork,
-        createdAt: new Date().toISOString(),
-        nftMetadata: rigConfiguration.nftMetadata
+        createdAt: new Date().toISOString()
       };
       
       setSavedRigs(prev => [...prev, newRig]);
@@ -880,7 +878,7 @@ const MiningRigBuilder: React.FC = () => {
             
             {(selectedNetwork === 'altcoinchain' || selectedNetwork === 'polygon') && (
               <button
-                onClick={() => setShowPoolDeployment(true)}
+                onClick={() => setShowMiningPoolModal(true)}
                 className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 px-6 py-3 rounded-lg font-semibold transition-all"
               >
                 Deploy Mining Pool
