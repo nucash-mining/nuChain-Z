@@ -58,9 +58,9 @@ const NETWORKS: Record<string, NetworkConfig> = {
   localhost: {
     chainId: 31337,
     name: 'Localhost',
-    nftContract: '0x5FbDB2315678afecb367f032d93F642f64180aa3', // Replace with actual deployed address
-    wattContract: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512', // Replace with actual deployed address
-    stakingContract: '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0', // Replace with actual deployed address
+    nftContract: '0x0000000000000000000000000000000000000000', // Update with deployed MockERC1155 address
+    wattContract: '0x0000000000000000000000000000000000000000', // Update with deployed MockERC20 address
+    stakingContract: '0x0000000000000000000000000000000000000000', // Update with deployed MiningPoolOperator address
     rpcUrl: 'http://localhost:8545',
     nativeCurrency: {
       name: 'Ether',
@@ -383,6 +383,14 @@ const MiningRigBuilder: React.FC = () => {
 
     try {
       const network = NETWORKS[selectedNetwork];
+      
+      // Check if contract address is properly configured
+      if (network.wattContract === '0x0000000000000000000000000000000000000000') {
+        console.warn(`WATT contract address not configured for ${network.name}`);
+        setWattBalance('0');
+        return;
+      }
+      
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       
       const wattContract = new ethers.Contract(
@@ -395,7 +403,7 @@ const MiningRigBuilder: React.FC = () => {
       const formattedBalance = ethers.utils.formatEther(balance);
       setWattBalance(parseFloat(formattedBalance).toFixed(2));
     } catch (error) {
-      console.error('Error loading WATT balance:', error);
+      console.warn('Error loading WATT balance:', error.message);
       setWattBalance('0');
     }
   };
@@ -405,6 +413,19 @@ const MiningRigBuilder: React.FC = () => {
 
     try {
       const network = NETWORKS[selectedNetwork];
+      
+      // Check if contract addresses are properly configured
+      if (network.nftContract === '0x0000000000000000000000000000000000000000') {
+        console.warn(`NFT contract address not configured for ${network.name}`);
+        // Set all balances to 0 for unconfigured networks
+        const updatedComponents = availableComponents.map(component => ({
+          ...component,
+          balance: 0
+        }));
+        setAvailableComponents(updatedComponents);
+        return;
+      }
+      
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       
       const nftContract = new ethers.Contract(
@@ -419,7 +440,7 @@ const MiningRigBuilder: React.FC = () => {
             const balance = await nftContract.balanceOf(account, component.id);
             return { ...component, balance: balance.toNumber() };
           } catch (error) {
-            console.error(`Error loading balance for component ${component.id}:`, error);
+            console.warn(`Error loading balance for component ${component.id}:`, error.message);
             return { ...component, balance: 0 };
           }
         })
@@ -427,7 +448,13 @@ const MiningRigBuilder: React.FC = () => {
 
       setAvailableComponents(updatedComponents);
     } catch (error) {
-      console.error('Error loading NFT balances:', error);
+      console.warn('Error loading NFT balances:', error.message);
+      // Set all balances to 0 on error
+      const updatedComponents = availableComponents.map(component => ({
+        ...component,
+        balance: 0
+      }));
+      setAvailableComponents(updatedComponents);
     }
   };
 
@@ -833,6 +860,15 @@ const MiningRigBuilder: React.FC = () => {
                   <span>WATT Contract:</span>
                   <span className="font-mono">{currentNetwork.wattContract.slice(0, 10)}...</span>
                 </div>
+                {selectedNetwork === 'localhost' && currentNetwork.nftContract === '0x0000000000000000000000000000000000000000' && (
+                  <div className="mt-2 p-2 bg-yellow-600/20 border border-yellow-600/30 rounded text-yellow-300">
+                    <p className="text-xs">
+                      <strong>Setup Required:</strong><br/>
+                      1. Run: <code>npx hardhat run scripts/deploy.js --network localhost</code><br/>
+                      2. Update contract addresses in the code with deployed addresses
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
