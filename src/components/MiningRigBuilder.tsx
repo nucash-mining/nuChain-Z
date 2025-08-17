@@ -163,21 +163,7 @@ const MiningRigBuilder: React.FC = () => {
         }
       };
     }
-    return {
-      nftContract: '0x0000000000000000000000000000000000000000',
-      wattToken: '0x0000000000000000000000000000000000000000',
-      wattTokenDisplay: '0x0000000000000000000000000000000000000000',
-      nftStaking: '0x0000000000000000000000000000000000000000',
-      miningRigContract: '0x0000000000000000000000000000000000000000',
-      miningPoolContract: '0x0000000000000000000000000000000000000000',
-      components: {
-        pcCase: { contract: '0x0000000000000000000000000000000000000000', tokenId: 1 },
-        xl1Processor: { contract: '0x0000000000000000000000000000000000000000', tokenId: 3 },
-        tx120Gpu: { contract: '0x0000000000000000000000000000000000000000', tokenId: 4 },
-        gp50Gpu: { contract: '0x0000000000000000000000000000000000000000', tokenId: 5 },
-        genesisBadge: { contract: '0x0000000000000000000000000000000000000000', tokenId: 2 }
-      }
-    };
+    return null;
   };
 
   useEffect(() => {
