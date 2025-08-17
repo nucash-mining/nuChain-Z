@@ -824,7 +824,7 @@ const MiningRigBuilder: React.FC = () => {
                 <motion.div
                   key={component.id}
                   whileHover={{ scale: 1.02 }}
-                  className={\`${cardClass} rounded-2xl p-6 hover:border-purple-400/50 transition-all cursor-pointer`}
+                  className={`${cardClass} rounded-2xl p-6 hover:border-purple-400/50 transition-all cursor-pointer`}
                   onClick={() => addComponent(component)}
                 >
                   <div className="relative overflow-hidden">
