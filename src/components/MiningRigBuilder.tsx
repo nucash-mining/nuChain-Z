@@ -3,6 +3,7 @@ import { ethers } from 'ethers';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, Cpu, HardDrive, Monitor, Award, Plus, Minus, Settings, Wallet, ExternalLink } from 'lucide-react';
 import toast from 'react-hot-toast';
+import ThreeDViewer from './ThreeDViewer';
 
 interface ComponentMetadata {
   name: string;
