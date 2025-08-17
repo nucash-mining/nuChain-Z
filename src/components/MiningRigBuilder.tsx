@@ -100,7 +100,7 @@ const NETWORKS: Record<string, NetworkConfig> = {
 };
 
 const MiningRigBuilder: React.FC = () => {
-  const [selectedNetwork, setSelectedNetwork] = useState<string>('altcoinchain');
+  const [activeTab, setActiveTab] = useState<'build' | 'stake-nfts' | 'mining-pools' | 'stake-watt'>('build');
   const [account, setAccount] = useState<string>('');
   const [wattBalance, setWattBalance] = useState<string>('0');
   const [isConnected, setIsConnected] = useState(false);
