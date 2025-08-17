@@ -318,29 +318,7 @@ const MiningRigBuilder: React.FC = () => {
         }
       }).catch(console.error);
     }
-    checkUserAccount();
   }, []);
-
-  const checkUserAccount = async () => {
-    if (typeof window.ethereum !== 'undefined') {
-      try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        setUserAccount(accounts[0]);
-        
-        // Check if user has used free mint
-        const hasUsedFreeMint = await checkFreeMintUsage(accounts[0]);
-        setUserFreeMintUsed(hasUsedFreeMint);
-      } catch (error) {
-        console.error('Error connecting wallet:', error);
-      }
-    }
-  };
-
-  const checkFreeMintUsage = async (account: string) => {
-    // Check if user has already used free mint
-    // This would query the Mining Game contract
-    return false; // Placeholder
-  };
 
   useEffect(() => {
     if (isConnected) {
@@ -668,7 +646,37 @@ const MiningRigBuilder: React.FC = () => {
     }
 
     // Show contract interaction modal
+    // Generate NFT metadata for the mining rig configuration
+    const rigNFTData = generateRigNFTData();
+    setContractData(prev => ({
+      ...prev,
+      nftMetadata: rigNFTData
+    }));
+    
     setShowContractModal(true);
+  };
+
+  const generateRigNFTData = () => {
+    const totalHashPower = calculateTotalHashPower();
+    const totalWattCost = calculateTotalWattCost();
+    const genesisBadgeMultiplier = selectedComponents[2] > 0 ? 150 : 100; // 150% if Genesis Badge
+    const efficiency = Math.round((totalHashPower / totalWattCost) * 100) / 100;
+    
+    return {
+      name: `Mining Rig Configuration #${Date.now()}`,
+      description: `Mining rig with ${totalHashPower.toLocaleString()} H/s hash power`,
+      attributes: [
+        { trait_type: 'Hash Power', value: totalHashPower },
+        { trait_type: 'WATT Consumption', value: totalWattCost },
+        { trait_type: 'Efficiency (H/s per W)', value: efficiency },
+        { trait_type: 'Genesis Badge Multiplier', value: `${genesisBadgeMultiplier}%` },
+        { trait_type: 'Component Count', value: Object.values(selectedComponents).reduce((a, b) => a + b, 0) },
+        { trait_type: 'GPU Count', value: selectedComponents[4] + selectedComponents[5] }
+      ],
+      image: '/images/mining-rig-nft.png',
+      external_url: 'https://mining.game',
+      background_color: '1a1b23'
+    };
   };
 
   const handleContractSubmit = async () => {
