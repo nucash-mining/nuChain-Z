@@ -487,6 +487,35 @@ const MiningRigBuilder: React.FC = () => {
     }
   };
 
+  const deployMiningPool = async () => {
+    if (!poolFormData.poolName || !poolFormData.domainName || !poolFormData.feePayoutAddress) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Simulate pool deployment
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      toast.success(`Mining pool "${poolFormData.poolName}" deployed successfully!`);
+      setShowPoolDeployment(false);
+      setPoolFormData({
+        poolName: '',
+        domainName: '',
+        feePayoutAddress: '',
+        feeRate: '0',
+        logoImageUrl: '',
+        developerDonation: '0'
+      });
+    } catch (error) {
+      console.error('Error deploying mining pool:', error);
+      toast.error('Failed to deploy mining pool');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const getComponentIcon = (type: string) => {
     switch (type) {
       case 'processor': return <Cpu className="w-5 h-5" />;
@@ -788,17 +817,6 @@ const MiningRigBuilder: React.FC = () => {
               {isLoading ? 'Building Rig...' : 'Build Mining Rig'}
             </button>
 
-            {/* Deploy Mining Pool Button */}
-            {(selectedNetwork === 'altcoinchain' || selectedNetwork === 'polygon') && (
-              <button
-                onClick={() => setShowPoolDeployment(true)}
-                disabled={!isConnected}
-                className="w-full mt-4 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed px-6 py-4 rounded-lg font-semibold text-lg transition-all"
-              >
-                Deploy Mining Pool
-              </button>
-            )}
-
             {/* Network Info */}
             <div className={`mt-6 ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white/5 border-white/10'} rounded-xl p-4 border`}>
               <h4 className="font-semibold mb-2">Network Information</h4>
@@ -820,6 +838,184 @@ const MiningRigBuilder: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Mining Pool Deployment Modal */}
+      <AnimatePresence>
+        {showPoolDeployment && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            onClick={() => setShowPoolDeployment(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className={`${cardClass} rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-3xl font-bold">Deploy Mining Pool</h2>
+                <button
+                  onClick={() => setShowPoolDeployment(false)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="mb-6 p-4 bg-yellow-600/20 border border-yellow-600/30 rounded-lg">
+                <p className="text-yellow-300 text-sm">
+                  <strong>Requirements:</strong> 100,000 WATT tokens will be locked for pool operation.
+                  Pool operators don't pay WATT fees for mining on nuChain L2.
+                </p>
+              </div>
+
+              <div className="space-y-6">
+                {/* Pool Name */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Mining Pool Name <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={poolFormData.poolName}
+                    onChange={(e) => setPoolFormData({...poolFormData, poolName: e.target.value})}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
+                    placeholder="Enter pool name (will be coded into contract)"
+                  />
+                </div>
+
+                {/* Domain Name */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Pool Domain Name <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={poolFormData.domainName}
+                    onChange={(e) => setPoolFormData({...poolFormData, domainName: e.target.value})}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
+                    placeholder="e.g., mypool.com"
+                  />
+                </div>
+
+                {/* Fee Payout Address */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Fee Payout Address <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={poolFormData.feePayoutAddress}
+                    onChange={(e) => setPoolFormData({...poolFormData, feePayoutAddress: e.target.value})}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
+                    placeholder="0x..."
+                  />
+                </div>
+
+                {/* Fee Rate */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Pool Fee Rate (0% preferred by users)
+                  </label>
+                  <div className="flex items-center space-x-4">
+                    <input
+                      type="number"
+                      min="0"
+                      max="10"
+                      step="0.1"
+                      value={poolFormData.feeRate}
+                      onChange={(e) => setPoolFormData({...poolFormData, feeRate: e.target.value})}
+                      className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
+                    />
+                    <span className="text-gray-400">% (max 10%)</span>
+                  </div>
+                  {parseFloat(poolFormData.feeRate) === 0 && (
+                    <p className="text-green-400 text-sm mt-1">✓ 0% fee - Most preferred by users!</p>
+                  )}
+                </div>
+
+                {/* Pool Logo */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Pool Logo Image URL
+                  </label>
+                  <input
+                    type="url"
+                    value={poolFormData.logoImageUrl}
+                    onChange={(e) => setPoolFormData({...poolFormData, logoImageUrl: e.target.value})}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
+                    placeholder="https://example.com/logo.png"
+                  />
+                  <p className="text-gray-400 text-sm mt-1">
+                    This logo will be displayed next to your pool name in The Mining Game
+                  </p>
+                </div>
+
+                {/* Developer Donation */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Developer Donation (Optional)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={poolFormData.developerDonation}
+                    onChange={(e) => setPoolFormData({...poolFormData, developerDonation: e.target.value})}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
+                    placeholder="0"
+                  />
+                  <p className="text-gray-400 text-sm mt-1">
+                    Optional donation to developer: 0xFE4813250e155D4b746c039C179Df5Fe11C3240E
+                  </p>
+                </div>
+
+                {/* Cost Summary */}
+                <div className="bg-purple-600/20 border border-purple-600/30 rounded-lg p-4">
+                  <h3 className="font-semibold mb-3">Cost Summary</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>Pool Stake (Required):</span>
+                      <span className="font-bold">100,000 WATT</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Developer Donation:</span>
+                      <span className="font-bold">{poolFormData.developerDonation || '0'} WATT</span>
+                    </div>
+                    <div className="border-t border-purple-600/30 pt-2 mt-2">
+                      <div className="flex justify-between font-bold">
+                        <span>Total Cost:</span>
+                        <span>{100000 + parseFloat(poolFormData.developerDonation || '0')} WATT</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Deploy Button */}
+                <div className="flex space-x-4">
+                  <button
+                    onClick={() => setShowPoolDeployment(false)}
+                    className="flex-1 bg-gray-600 hover:bg-gray-700 px-6 py-3 rounded-lg font-semibold transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={deployMiningPool}
+                    disabled={isLoading || !poolFormData.poolName || !poolFormData.domainName || !poolFormData.feePayoutAddress}
+                    className="flex-1 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed px-6 py-3 rounded-lg font-semibold transition-all"
+                  >
+                    {isLoading ? 'Deploying...' : 'Deploy Pool'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

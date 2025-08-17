@@ -110,7 +110,8 @@ async function main() {
       wattToken: WATT_TOKEN_ADDRESS,
       genesisBadge: GENESIS_BADGE_ADDRESS,
       nftMiningRig: nftMiningRig.address,
-      miningPoolOperator: miningPoolOperator.address
+      miningPoolOperator: miningPoolOperator.address,
+      miningPoolDeployment: miningPoolDeployment.address
     },
     timestamp: new Date().toISOString()
   };
