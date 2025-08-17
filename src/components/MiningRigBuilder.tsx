@@ -95,20 +95,20 @@ const MiningRigBuilder: React.FC = () => {
     if (chainId === 31337) { // Localhost
       try {
         // Try to load deployment info for localhost
-        wattToken: '0x6645143e49B3a15d8F205658903a55E520444698'
+        const wattToken = '0x6645143e49B3a15d8F205658903a55E520444698';
         return {
-          nftContract: deploymentInfo.contracts.genesisBadge,
-          wattToken: deploymentInfo.contracts.wattToken,
-          wattTokenDisplay: deploymentInfo.contracts.wattToken,
-          nftStaking: deploymentInfo.contracts.genesisBadge, // Use same for testing
-          miningRigContract: deploymentInfo.contracts.nftMiningRig,
-          miningPoolContract: deploymentInfo.contracts.miningPoolOperator,
+          nftContract: '0x5FbDB2315678afecb367f032d93F642f64180aa3', // deploymentInfo.contracts.genesisBadge,
+          wattToken: wattToken, // deploymentInfo.contracts.wattToken,
+          wattTokenDisplay: wattToken, // deploymentInfo.contracts.wattToken,
+          nftStaking: '0x5FbDB2315678afecb367f032d93F642f64180aa3', // deploymentInfo.contracts.genesisBadge, // Use same for testing
+          miningRigContract: '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0', // deploymentInfo.contracts.nftMiningRig,
+          miningPoolContract: '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9', // deploymentInfo.contracts.miningPoolOperator,
           components: {
-            pcCase: { contract: deploymentInfo.contracts.genesisBadge, tokenId: 1 },
-            xl1Processor: { contract: deploymentInfo.contracts.genesisBadge, tokenId: 3 },
-            tx120Gpu: { contract: deploymentInfo.contracts.genesisBadge, tokenId: 4 },
-            gp50Gpu: { contract: deploymentInfo.contracts.genesisBadge, tokenId: 5 },
-            genesisBadge: { contract: deploymentInfo.contracts.genesisBadge, tokenId: 2 }
+            pcCase: { contract: '0x5FbDB2315678afecb367f032d93F642f64180aa3', tokenId: 1 }, // deploymentInfo.contracts.genesisBadge, tokenId: 1 },
+            xl1Processor: { contract: '0x5FbDB2315678afecb367f032d93F642f64180aa3', tokenId: 3 }, // deploymentInfo.contracts.genesisBadge, tokenId: 3 },
+            tx120Gpu: { contract: '0x5FbDB2315678afecb367f032d93F642f64180aa3', tokenId: 4 }, // deploymentInfo.contracts.genesisBadge, tokenId: 4 },
+            gp50Gpu: { contract: '0x5FbDB2315678afecb367f032d93F642f64180aa3', tokenId: 5 }, // deploymentInfo.contracts.genesisBadge, tokenId: 5 }
+            genesisBadge: { contract: '0x5FbDB2315678afecb367f032d93F642f64180aa3', tokenId: 2 } // deploymentInfo.contracts.genesisBadge, tokenId: 2 }
           }
         };
       } catch (error) {
@@ -144,15 +144,13 @@ const MiningRigBuilder: React.FC = () => {
           xl1Processor: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 1 },
           tx120Gpu: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 2 },
           gp50Gpu: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 3 },
-        nftContract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2',
-        wattContract: '0x6645143e49B3a15d8F205658903a55E520444698',
-        stakingContract: '0xe463045318393095F11ed39f1a98332aBCc1A7b1'
+          genesisBadge: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 2 }
+        }
       };
     } else if (chainId === 137) { // Polygon
       return {
         nftContract: '0x970a8b10147e3459d3cbf56329b76ac18d329728',
-        wattContract: '0xE960d5076cd3169C343Ee287A2c3380A222e5839',
-        stakingContract: '0xcbfcA68D10B2ec60a0FB2Bc58F7F0Bfd32CD5275'
+        wattToken: '0xE960d5076cd3169C343Ee287A2c3380A222e5839',
         wattTokenDisplay: '0xE960d5076cd3169C343Ee287A2c3380A222e5839',
         nftStaking: '0x...', // Update with NFT Staking contract on Polygon
         miningRigContract: '0x...', // Will be deployed
@@ -166,10 +164,23 @@ const MiningRigBuilder: React.FC = () => {
         }
       };
     }
-    return null;
+    return {
+      nftContract: '0x0000000000000000000000000000000000000000',
+      wattToken: '0x0000000000000000000000000000000000000000',
+      wattTokenDisplay: '0x0000000000000000000000000000000000000000',
+      nftStaking: '0x0000000000000000000000000000000000000000',
+      miningRigContract: '0x0000000000000000000000000000000000000000',
+      miningPoolContract: '0x0000000000000000000000000000000000000000',
+      components: {
+        pcCase: { contract: '0x0000000000000000000000000000000000000000', tokenId: 0 },
+        xl1Processor: { contract: '0x0000000000000000000000000000000000000000', tokenId: 0 },
+        tx120Gpu: { contract: '0x0000000000000000000000000000000000000000', tokenId: 0 },
+        gp50Gpu: { contract: '0x0000000000000000000000000000000000000000', tokenId: 0 },
+        genesisBadge: { contract: '0x0000000000000000000000000000000000000000', tokenId: 0 }
+      }
+    };
   };
-        wattContract: '0x0000000000000000000000000000000000000000',
-        stakingContract: '0x0000000000000000000000000000000000000000'
+
   useEffect(() => {
     initializeWeb3();
   }, []);
@@ -417,7 +428,7 @@ const MiningRigBuilder: React.FC = () => {
             { type: 'Processor', name: 'XL1 Processor' },
             { type: 'Graphics Card', name: 'TX120 GPU' },
             { type: 'Boost Item', name: 'Genesis Badge' }
-          ],
+          ] as Component[],
           totalHashPower: 1875000, // 187.5 MH/s in hash units
           totalWattConsumption: 612,
           genesisBadgeMultiplier: 150,
@@ -434,7 +445,7 @@ const MiningRigBuilder: React.FC = () => {
             { type: 'PC Case', name: 'Free Mint PC Case' },
             { type: 'Processor', name: 'XL1 Processor' },
             { type: 'Graphics Card', name: 'GP50 GPU' }
-          ],
+          ] as Component[],
           totalHashPower: 2250000, // 225 MH/s in hash units
           totalWattConsumption: 575,
           genesisBadgeMultiplier: 100,
@@ -859,12 +870,6 @@ const MiningRigBuilder: React.FC = () => {
                           <p className="text-xs text-gray-500 font-mono">
                             Token ID: {component.tokenId}
                           </p>
-                          <div className="text-xs text-gray-500 font-mono mt-1">
-                            {getContractAddresses().nftContract}
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            Available: {component.balance || 0}
-                          </div>
                         </div>
                       </div>
                     </div>
