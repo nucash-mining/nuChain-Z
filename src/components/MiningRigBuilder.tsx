@@ -116,10 +116,6 @@ const MiningRigBuilder: React.FC = () => {
   const [savedMiningRigs, setSavedMiningRigs] = useState<SavedMiningRig[]>([]);
   const [deployedPools, setDeployedPools] = useState<MiningPool[]>([]);
   const [showMiningPoolModal, setShowMiningPoolModal] = useState(false);
-    payoutAddress: '',
-    wattAllowance: '',
-    stakingAddress: ''
-  });
   const [showFreeMintModal, setShowFreeMintModal] = useState(false);
   const [showStakeModal, setShowStakeModal] = useState(false);
   const [selectedRigForStaking, setSelectedRigForStaking] = useState<number | null>(null);
