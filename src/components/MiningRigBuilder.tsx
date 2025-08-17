@@ -985,6 +985,130 @@ const MiningRigBuilder: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      {/* Pool Connection Modal */}
+      <AnimatePresence>
+        {showPoolConnection && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            onClick={() => setShowPoolConnection(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-gradient-to-br from-purple-900 to-blue-900 rounded-2xl p-8 max-w-2xl w-full border border-white/20"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-white">Connect to Mining Pool</h2>
+                <button
+                  onClick={() => setShowPoolConnection(false)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              {selectedRigForPool && (
+                <div className="mb-6 p-4 bg-white/10 rounded-lg border border-white/20">
+                  <h3 className="text-lg font-semibold text-white mb-2">{selectedRigForPool.name}</h3>
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-400">Hash Power</p>
+                      <p className="text-white font-bold">{selectedRigForPool.totalHashPower.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400">WATT/Block</p>
+                      <p className="text-yellow-400 font-bold">{selectedRigForPool.totalWattConsumption}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400">Daily Cost</p>
+                      <p className="text-red-400 font-bold">{(selectedRigForPool.totalWattConsumption * 172800).toLocaleString()} WATT</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-white font-semibold mb-3">Select Blockchain</label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {['nuchain', 'polygon', 'altcoinchain'].map((chain) => (
+                      <button
+                        key={chain}
+                        onClick={() => setSelectedChain(chain)}
+                        className={`p-3 rounded-lg border transition-all ${
+                          selectedChain === chain
+                            ? 'bg-purple-600 border-purple-500 text-white'
+                            : 'bg-white/5 border-white/20 text-gray-300 hover:bg-white/10'
+                        }`}
+                      >
+                        {chain}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-white font-semibold mb-3">Select Mining Pool</label>
+                  <div className="space-y-3">
+                    {availablePools
+                      .filter(pool => pool.chain === selectedChain)
+                      .map((pool) => (
+                        <div
+                          key={pool.id}
+                          onClick={() => setSelectedPool(pool.id)}
+                          className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                            selectedPool === pool.id
+                              ? 'bg-purple-600/30 border-purple-500'
+                              : 'bg-white/5 border-white/20 hover:bg-white/10'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="text-white font-semibold">{pool.name}</h4>
+                              <p className="text-gray-400 text-sm">{pool.operator}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-white font-bold">{pool.fee}% fee</p>
+                              <p className="text-gray-400 text-sm">{pool.miners} miners</p>
+                            </div>
+                          </div>
+                          
+                          {pool.id === 'elite-mining' && (
+                            <div className="mt-2 text-purple-300 text-sm font-semibold">
+                              ⭐ Your Created Pool
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                </div>
+                
+                <div className="flex space-x-4">
+                  <button
+                    onClick={() => setShowPoolConnection(false)}
+                    className="flex-1 px-6 py-3 bg-gray-600 hover:bg-gray-700 rounded-lg font-semibold transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={savePoolConnection}
+                    disabled={!selectedPool}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed rounded-lg font-semibold transition-all"
+                  >
+                    Connect to Pool
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* NFT Staking Modal */}
       <AnimatePresence>
