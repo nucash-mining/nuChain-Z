@@ -234,56 +234,15 @@ contract NFTMiningRig is ERC721, ERC721Enumerable, Ownable, ReentrancyGuard {
     }
 
     /**
-     * @dev Update mining rig configuration
-     * @param _rigId Mining rig NFT ID
-     * @param _selectedPool New mining pool address
-     * @param _selectedChain New target blockchain
-     */
-    function updateMiningRigConfig(
-        uint256 _rigId,
-        address _selectedPool,
-        string calldata _selectedChain
-    ) external {
-        require(ownerOf(_rigId) == msg.sender, "Not rig owner");
-        require(rigExists[_rigId], "Rig does not exist");
-        
-        MiningRig storage rig = miningRigs[_rigId];
-        rig.selectedPool = _selectedPool;
-        rig.selectedChain = _selectedChain;
-        rig.lastUpdated = block.timestamp;
-        
-        emit MiningRigUpdated(_rigId, rig.totalHashPower, rig.totalWattConsumption);
-    }
-
-    /**
-     * @dev Calculate WATT consumption for active mining
-     * @param _rigId Mining rig NFT ID
-     * @return WATT tokens consumed per block
-     */
-    function calculateWattConsumption(uint256 _rigId) external view returns (uint256) {
-        require(rigExists[_rigId], "Rig does not exist");
-        
-        MiningRig storage rig = miningRigs[_rigId];
-        if (!rig.isPoweredOn) {
-            return 0;
-        }
-        
-        return rig.totalWattConsumption;
-    }
-
-    /**
      * @dev Get mining rig configuration data
      * @param _rigId Mining rig NFT ID
      */
     function getMiningRig(uint256 _rigId) external view returns (
         address owner,
-        string memory rigName,
         uint256 totalHashPower,
         uint256 totalWattConsumption,
         uint256 genesisBadgeMultiplier,
         bool isPoweredOn,
-        address selectedPool,
-        string memory selectedChain,
         uint256 componentCount
     ) {
         require(rigExists[_rigId], "Rig does not exist");
@@ -291,13 +250,10 @@ contract NFTMiningRig is ERC721, ERC721Enumerable, Ownable, ReentrancyGuard {
         MiningRig storage rig = miningRigs[_rigId];
         return (
             rig.owner,
-            rig.rigName,
             rig.totalHashPower,
             rig.totalWattConsumption,
             rig.genesisBadgeMultiplier,
             rig.isPoweredOn,
-            rig.selectedPool,
-            rig.selectedChain,
             rig.components.length
         );
     }
