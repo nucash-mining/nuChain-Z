@@ -1097,6 +1097,99 @@ const MiningRigBuilder: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Mining Pools Tab */}
+        {activeTab === 'pools' && (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-white mb-4">Available Mining Pools</h2>
+              <p className="text-gray-300">Join a mining pool to start earning rewards</p>
+            </div>
+
+            {deployedPools.length === 0 ? (
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 text-center">
+                <div className="text-6xl mb-4">🏊‍♂️</div>
+                <h3 className="text-xl font-semibold text-white mb-2">No Mining Pools Available</h3>
+                <p className="text-gray-300 mb-4">Deploy a mining pool or wait for others to create pools</p>
+                <button
+                  onClick={() => setActiveTab('pool')}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-6 py-3 rounded-lg font-semibold text-white transition-all"
+                >
+                  Deploy Mining Pool
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {deployedPools.map((pool) => (
+                  <div key={pool.poolId} className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center">
+                        {pool.logoImageUrl ? (
+                          <img src={pool.logoImageUrl} alt={pool.poolName} className="w-12 h-12 rounded-full mr-3" />
+                        ) : (
+                          <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold mr-3">
+                            {pool.poolName.charAt(0)}
+                          </div>
+                        )}
+                        <div>
+                          <h3 className="text-xl font-bold text-white">{pool.poolName}</h3>
+                          <p className="text-gray-300 text-sm">{pool.domainName}</p>
+                        </div>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-sm ${
+                        pool.isActive ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+                      }`}>
+                        {pool.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div className="bg-white/5 rounded-lg p-3">
+                        <p className="text-gray-400 text-sm">Pool Fee</p>
+                        <p className="text-white font-semibold">{pool.feeRate}%</p>
+                      </div>
+                      <div className="bg-white/5 rounded-lg p-3">
+                        <p className="text-gray-400 text-sm">Miners</p>
+                        <p className="text-white font-semibold">{pool.totalMiners}</p>
+                      </div>
+                      <div className="bg-white/5 rounded-lg p-3">
+                        <p className="text-gray-400 text-sm">Hash Power</p>
+                        <p className="text-white font-semibold">{pool.totalHashPower.toLocaleString()}</p>
+                      </div>
+                      <div className="bg-white/5 rounded-lg p-3">
+                        <p className="text-gray-400 text-sm">Network</p>
+                        <p className="text-white font-semibold capitalize">{pool.network}</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 mb-4">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-400">Operator:</span>
+                        <span className="text-white font-mono">{pool.operator.slice(0, 10)}...</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-400">WATT Stake:</span>
+                        <span className="text-green-400 font-semibold">100,000 WATT</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-400">Payout Frequency:</span>
+                        <span className="text-white">Every hour</span>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => joinMiningPool(pool)}
+                      disabled={!pool.isActive}
+                      className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed px-6 py-3 rounded-lg font-semibold text-white transition-all"
+                    >
+                      {pool.isActive ? 'Join Pool' : 'Pool Inactive'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Contract Configuration Modal */}
