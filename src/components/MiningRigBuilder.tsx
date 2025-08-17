@@ -504,19 +504,16 @@ const MiningRigBuilder: React.FC = () => {
             {isDarkMode ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
           </button>
           
-          <div className="flex items-center justify-center mb-4">
+          <div className="flex flex-col items-center justify-center mb-6">
             <img 
               src={MINING_GAME_LOGO} 
               alt="Mining Game" 
-              className="w-16 h-16 mr-4"
+              className="w-32 h-32 mb-4"
             />
             <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
               Mining Rig Builder
             </h1>
           </div>
-          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-            Mining Rig Builder
-          </h1>
           <p className="text-xl text-gray-300">Build your NFT mining rig from Mining Game components</p>
         </div>
 
