@@ -1050,7 +1050,7 @@ const MiningRigBuilder: React.FC = () => {
                     <motion.div
                       key={component.id}
                       whileHover={{ scale: 1.02 }}
-                      className={\`bg-gray-900 border-2 rounded-2xl p-4 cursor-pointer transition-all ${
+                      className={`bg-gray-900 border-2 rounded-2xl p-4 cursor-pointer transition-all ${
                         isSelected 
                           ? 'border-green-500 bg-green-500/10' 
                           : 'border-green-500/30 hover:border-green-500/50'
