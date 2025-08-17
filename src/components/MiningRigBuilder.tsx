@@ -1126,6 +1126,9 @@ const MiningRigBuilder: React.FC = () => {
                           <Power className="w-4 h-4" />
                         </button>
                       </div>
+                    <p className="text-xs text-gray-500 mb-2">
+                      NFT Contract: {provider ? getContractAddresses(chainId).nftContract : 'Not connected'}
+                    </p>
                     </div>
                     
                     <div className="space-y-2 text-sm">
