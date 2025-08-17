@@ -95,6 +95,7 @@ const MiningRigBuilder: React.FC = () => {
     if (chainId === 31337) { // Localhost
       try {
         // Try to load deployment info for localhost
+        wattToken: '0x6645143e49B3a15d8F205658903a55E520444698'
         return {
           nftContract: deploymentInfo.contracts.genesisBadge,
           wattToken: deploymentInfo.contracts.wattToken,
@@ -143,15 +144,15 @@ const MiningRigBuilder: React.FC = () => {
           xl1Processor: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 1 },
           tx120Gpu: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 2 },
           gp50Gpu: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 3 },
-          genesisBadge: { contract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', tokenId: 2 }
-        },
+        nftContract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2',
         wattContract: '0x6645143e49B3a15d8F205658903a55E520444698',
         stakingContract: '0xe463045318393095F11ed39f1a98332aBCc1A7b1'
       };
     } else if (chainId === 137) { // Polygon
       return {
         nftContract: '0x970a8b10147e3459d3cbf56329b76ac18d329728',
-        wattToken: '0xE960d5076cd3169C343Ee287A2c3380A222e5839',
+        wattContract: '0xE960d5076cd3169C343Ee287A2c3380A222e5839',
+        stakingContract: '0xcbfcA68D10B2ec60a0FB2Bc58F7F0Bfd32CD5275'
         wattTokenDisplay: '0xE960d5076cd3169C343Ee287A2c3380A222e5839',
         nftStaking: '0x...', // Update with NFT Staking contract on Polygon
         miningRigContract: '0x...', // Will be deployed
@@ -162,14 +163,13 @@ const MiningRigBuilder: React.FC = () => {
           tx120Gpu: { contract: '0x970a8b10147e3459d3cbf56329b76ac18d329728', tokenId: 2 },
           gp50Gpu: { contract: '0x970a8b10147e3459d3cbf56329b76ac18d329728', tokenId: 3 },
           genesisBadge: { contract: '0x970a8b10147e3459d3cbf56329b76ac18d329728', tokenId: 2 }
-        },
-        wattContract: '0xE960d5076cd3169C343Ee287A2c3380A222e5839',
-        stakingContract: '0x0000000000000000000000000000000000000000'
+        }
       };
     }
     return null;
   };
-
+        wattContract: '0x0000000000000000000000000000000000000000',
+        stakingContract: '0x0000000000000000000000000000000000000000'
   useEffect(() => {
     initializeWeb3();
   }, []);
@@ -859,6 +859,12 @@ const MiningRigBuilder: React.FC = () => {
                           <p className="text-xs text-gray-500 font-mono">
                             Token ID: {component.tokenId}
                           </p>
+                          <div className="text-xs text-gray-500 font-mono mt-1">
+                            {getContractAddresses().nftContract}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            Available: {component.balance || 0}
+                          </div>
                         </div>
                       </div>
                     </div>
