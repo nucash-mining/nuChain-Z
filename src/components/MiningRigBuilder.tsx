@@ -107,6 +107,7 @@ const MiningRigBuilder: React.FC = () => {
   const [selectedComponents, setSelectedComponents] = useState<Component[]>([]);
   const [availableComponents, setAvailableComponents] = useState<Component[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedNetwork, setSelectedNetwork] = useState('altcoinchain');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showPoolDeployment, setShowPoolDeployment] = useState(false);
   const [showNFTStaking, setShowNFTStaking] = useState(false);
