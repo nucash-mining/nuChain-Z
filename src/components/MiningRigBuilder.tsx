@@ -110,13 +110,13 @@ const MiningRigBuilder: React.FC = () => {
   const [showContractModal, setShowContractModal] = useState(false);
   const [rigConfiguration, setRigConfiguration] = useState({
     name: '',
-  const [savedMiningRigs, setSavedMiningRigs] = useState<SavedMiningRig[]>([]);
-  const [deployedPools, setDeployedPools] = useState<MiningPool[]>([]);
-  const [showMiningPoolModal, setShowMiningPoolModal] = useState(false);
     payoutAddress: '',
     wattAllowance: '',
     stakingAddress: ''
   });
+  const [savedMiningRigs, setSavedMiningRigs] = useState<SavedMiningRig[]>([]);
+  const [deployedPools, setDeployedPools] = useState<MiningPool[]>([]);
+  const [showMiningPoolModal, setShowMiningPoolModal] = useState(false);
   const [showFreeMintModal, setShowFreeMintModal] = useState(false);
   const [showStakeModal, setShowStakeModal] = useState(false);
   const [selectedRigForStaking, setSelectedRigForStaking] = useState<number | null>(null);
@@ -738,30 +738,6 @@ const MiningRigBuilder: React.FC = () => {
       
       toast.success('Mining pool deployed successfully!');
       setShowPoolDeployment(false);
-      
-      // Save the deployed pool
-      const newPool: MiningPool = {
-        id: Date.now(),
-        name: poolContractData.poolName,
-        domainName: poolContractData.domainName,
-        operator: account || 'Unknown',
-        feeRate: parseFloat(poolContractData.feeRate),
-        feePayoutAddress: poolContractData.feePayoutAddress,
-        logoImageUrl: poolContractData.logoImageUrl,
-        network: selectedNetwork,
-        totalMiners: 0,
-        totalHashPower: 0,
-        wattStaked: 100000,
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        payoutFrequency: 'Every hour',
-        minPayout: '1 NU'
-      };
-      
-      const updatedPools = [...deployedPools, newPool];
-      setDeployedPools(updatedPools);
-      localStorage.setItem('deployedPools', JSON.stringify(updatedPools));
-      
       setPoolFormData({
         poolName: '',
         domainName: '',
@@ -1563,7 +1539,7 @@ const MiningRigBuilder: React.FC = () => {
                           )
                         ) : (
                           <button className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-all">
-                            BUY
+                            {component.id === 1 ? 'Free Mint' : 'Buy on OpenSea'}
                           </button>
                         )}
                       </div>
