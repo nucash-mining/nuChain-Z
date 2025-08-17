@@ -195,7 +195,7 @@ const MiningRigBuilder: React.FC = () => {
       {
         id: 3,
         name: "XL1 Processor",
-        type: 'gpu',
+        type: 'processor',
         hashpower: 10,
         wattUsage: 2,
         stakeWeight: 9,
