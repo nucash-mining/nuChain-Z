@@ -9,9 +9,9 @@ import (
 
 // BeginBlocker is called at the beginning of every block
 func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
-	// Adjust mining difficulty every 2016 blocks (similar to Bitcoin)
+	// Adjust Equihash difficulty every 2016 blocks (similar to Zcash)
 	if ctx.BlockHeight()%2016 == 0 && ctx.BlockHeight() > 0 {
-		k.AdjustDifficulty(ctx)
+		k.equihashMining.AdjustEquihashDifficulty(ctx)
 	}
 	
 	// Update hardware mining statistics

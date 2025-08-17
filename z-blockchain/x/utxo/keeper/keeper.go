@@ -20,6 +20,8 @@ import (
 	
 	// Hardware acceleration for zk-proofs
 	cysic "github.com/cysic-labs/zk-sdk-go"
+	// Equihash mining support
+	"github.com/zcash/librustzcash-go"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/ethereum/go-ethereum/crypto"
 )
@@ -35,6 +37,10 @@ type Keeper struct {
 	// Hardware mining configuration
 	hardwareAcceleration bool
 	supportedDevices     map[string]bool // GPU/FPGA device IDs
+	
+	// Equihash mining
+	equihashMining *EquihashMiningKeeper
+	asicResistant  bool
 }
 
 func NewKeeper(
@@ -49,7 +55,7 @@ func NewKeeper(
 		ps = ps.WithKeyTable(types.ParamKeyTable())
 	}
 
-	return &Keeper{
+	keeper := &Keeper{
 		cdc:        cdc,
 		storeKey:   storeKey,
 		memKey:     memKey,
@@ -57,12 +63,27 @@ func NewKeeper(
 		bankKeeper: bankKeeper,
 		logger:     logger,
 		hardwareAcceleration: true,
+		asicResistant: true,
 		supportedDevices: map[string]bool{
+			// GPU devices (ASIC resistant)
+			"nvidia-rtx-3080":  true,
+			"nvidia-rtx-3090":  true,
+			"nvidia-rtx-4080":  true,
+			"nvidia-rtx-4090":  true,
+			"amd-rx-6800-xt":   true,
+			"amd-rx-6900-xt":   true,
+			"amd-rx-7800-xt":   true,
+			"amd-rx-7900-xtx":  true,
+			// Professional GPUs
 			"nvidia-a100": true,
 			"nvidia-h100": true,
-			"xilinx-fpga": true,
 		},
 	}
+	
+	// Initialize Equihash mining
+	keeper.equihashMining = NewEquihashMiningKeeper(keeper)
+	
+	return keeper
 }
 
 // ProcessUTXOTransaction validates and processes a UTXO transaction
@@ -164,35 +185,8 @@ func (k Keeper) ProcessShieldedTransaction(ctx sdk.Context, tx types.ShieldedTra
 
 // MineBlock processes hardware-accelerated zk-proof mining
 func (k Keeper) MineBlock(ctx sdk.Context, proof types.MiningProof) error {
-	// Verify hardware acceleration is available
-	if !k.hardwareAcceleration {
-		return fmt.Errorf("hardware acceleration not available")
-	}
-	
-	// Verify supported hardware device
-	if !k.supportedDevices[proof.HardwareId] {
-		return fmt.Errorf("unsupported hardware device: %s", proof.HardwareId)
-	}
-	
-	// Verify zk-SNARK mining proof using Cysic method
-	if !k.VerifyMiningProof(ctx, proof) {
-		return fmt.Errorf("invalid mining proof")
-	}
-	
-	// Check difficulty target
-	currentDifficulty := k.GetDifficulty(ctx)
-	if proof.Difficulty < currentDifficulty {
-		return fmt.Errorf("insufficient difficulty: got %d, required %d", 
-			proof.Difficulty, currentDifficulty)
-	}
-	
-	// Distribute mining reward
-	miner, err := sdk.AccAddressFromBech32(proof.MinerAddress)
-	if err != nil {
-		return fmt.Errorf("invalid miner address: %w", err)
-	}
-	
-	return k.DistributeMiningReward(ctx, miner, proof.HardwareId)
+	// Use Equihash 144_5 (zhash) for ASIC resistance
+	return k.equihashMining.ProcessEquihashMining(ctx, proof)
 }
 
 // VerifyMiningProof verifies Cysic-style zk-SNARK mining proof

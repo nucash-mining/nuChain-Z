@@ -50,7 +50,11 @@ func DefaultParams() Params {
 		1000000,             // Min difficulty
 		1000000000000,       // Max difficulty
 		true,                // Hardware acceleration enabled
-		[]string{"nvidia-a100", "nvidia-h100", "xilinx-fpga"},
+		[]string{
+			"nvidia-rtx-3080", "nvidia-rtx-3090", "nvidia-rtx-4080", "nvidia-rtx-4090",
+			"amd-rx-6800-xt", "amd-rx-6900-xt", "amd-rx-7800-xt", "amd-rx-7900-xtx",
+			"nvidia-a100", "nvidia-h100",
+		},
 	)
 }
 
