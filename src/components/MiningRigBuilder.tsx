@@ -97,7 +97,7 @@ const MiningRigBuilder: React.FC = () => {
       };
     } else if (chainId === 137) { // Polygon
       return {
-        nftContract: '0x970a8b10147e3459d3cbf56329b76ac18d329728', // Polygon contract
+        nftContract: '0x970a8b10147e3459d3cbf56329b76ac18d329728', // Mining Game NFTs on Polygon
         wattToken: '0x...', // Update with actual WATT token address on Polygon
         nftStaking: '0x...', // Update with NFT Staking contract on Polygon
         miningRigContract: '0x...', // Will be deployed
@@ -313,7 +313,31 @@ const MiningRigBuilder: React.FC = () => {
     if (component.type === 'Processor') {
       const existingProcessor = selectedComponents.find(c => c.type === 'Processor');
       if (existingProcessor) {
-        alert('Only one Processor allowed per rig');
+        alert('Only one XL1 Processor allowed per rig');
+        return;
+      }
+    }
+    
+    // GPU restrictions: max 1 of each type, max 2 total
+    if (component.type === 'Graphics Card') {
+      const existingGPUs = selectedComponents.filter(c => c.type === 'Graphics Card');
+      
+      if (existingGPUs.length >= 2) {
+        alert('Maximum 2 Graphics Cards allowed per rig');
+        return;
+      }
+      
+      // Check for duplicate GPU types
+      const existingTX120 = existingGPUs.find(c => c.name === 'TX120 GPU');
+      const existingGP50 = existingGPUs.find(c => c.name === 'GP50 GPU');
+      
+      if (component.name === 'TX120 GPU' && existingTX120) {
+        alert('Only one TX120 GPU allowed per rig');
+        return;
+      }
+      
+      if (component.name === 'GP50 GPU' && existingGP50) {
+        alert('Only one GP50 GPU allowed per rig');
         return;
       }
     }
@@ -391,7 +415,27 @@ const MiningRigBuilder: React.FC = () => {
     const hasProcessor = selectedComponents.some(c => c.type === 'Processor');
     
     if (!hasCase || !hasProcessor) {
-      alert('Mining rig requires at least a PC Case and Processor');
+      alert('Mining rig requires exactly 1 PC Case and 1 XL1 Processor');
+      return;
+    }
+    
+    // Validate component requirements
+    const caseComponents = selectedComponents.filter(c => c.type === 'PC Case');
+    const processorComponents = selectedComponents.filter(c => c.type === 'Processor');
+    const gpuComponents = selectedComponents.filter(c => c.type === 'Graphics Card');
+    
+    if (caseComponents.length !== 1) {
+      alert('Exactly 1 PC Case required');
+      return;
+    }
+    
+    if (processorComponents.length !== 1) {
+      alert('Exactly 1 XL1 Processor required');
+      return;
+    }
+    
+    if (gpuComponents.length === 0) {
+      alert('At least 1 Graphics Card (TX120 or GP50) required');
       return;
     }
     
@@ -547,15 +591,30 @@ const MiningRigBuilder: React.FC = () => {
                               component.type === 'PC Case' ? Monitor :
                               component.type === 'Boost Item' ? Award : Settings;
                   
+                  const isSelected = selectedComponents.some(c => c.id === component.id);
+                  const canAdd = !isSelected && (
+                    component.type !== 'PC Case' || !selectedComponents.some(c => c.type === 'PC Case')
+                  ) && (
+                    component.type !== 'Processor' || !selectedComponents.some(c => c.type === 'Processor')
+                  ) && (
+                    component.type !== 'Graphics Card' || selectedComponents.filter(c => c.type === 'Graphics Card').length < 2
+                  ) && (
+                    component.type !== 'Boost Item' || !selectedComponents.some(c => c.type === 'Boost Item')
+                  );
+                  
                   return (
                     <div
                       key={component.id}
-                      className={`relative bg-white/5 rounded-xl p-4 border transition-all cursor-pointer hover:scale-105 ${
-                        selectedComponents.some(c => c.id === component.id) 
+                      className={`relative bg-white/5 rounded-xl p-4 border transition-all ${
+                        canAdd ? 'cursor-pointer hover:scale-105' : 'cursor-not-allowed opacity-50'
+                      } ${
+                        isSelected
                           ? 'border-purple-400 bg-purple-400/10' 
-                          : 'border-white/10 hover:border-purple-400'
+                          : canAdd 
+                            ? 'border-white/10 hover:border-purple-400'
+                            : 'border-gray-600'
                       }`}
-                      onClick={() => addComponent(component)}
+                      onClick={() => canAdd && addComponent(component)}
                     >
                       {/* Rarity Border */}
                       <div className={`absolute inset-0 bg-gradient-to-r ${getRarityColor(component.rarity)} rounded-xl p-[1px]`}>
@@ -673,6 +732,38 @@ const MiningRigBuilder: React.FC = () => {
               {/* Stats */}
               <div className="mb-6 p-4 bg-white/5 rounded-lg">
                 <h3 className="text-lg font-semibold mb-3">Rig Statistics</h3>
+                
+                {/* Component Requirements */}
+                <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                  <h4 className="text-sm font-semibold text-blue-400 mb-2">Required Components:</h4>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span>• 1x PC Case (Free Mint)</span>
+                      <span className={selectedComponents.some(c => c.type === 'PC Case') ? 'text-green-400' : 'text-red-400'}>
+                        {selectedComponents.some(c => c.type === 'PC Case') ? '✓' : '✗'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>• 1x XL1 Processor</span>
+                      <span className={selectedComponents.some(c => c.type === 'Processor') ? 'text-green-400' : 'text-red-400'}>
+                        {selectedComponents.some(c => c.type === 'Processor') ? '✓' : '✗'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>• 1-2x GPU (TX120 or GP50)</span>
+                      <span className={selectedComponents.some(c => c.type === 'Graphics Card') ? 'text-green-400' : 'text-red-400'}>
+                        {selectedComponents.filter(c => c.type === 'Graphics Card').length > 0 ? `✓ (${selectedComponents.filter(c => c.type === 'Graphics Card').length})` : '✗'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>• 1x Genesis Badge (Optional)</span>
+                      <span className={selectedComponents.some(c => c.type === 'Boost Item') ? 'text-green-400' : 'text-yellow-400'}>
+                        {selectedComponents.some(c => c.type === 'Boost Item') ? '✓' : 'Optional'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span>Total Hash Power:</span>

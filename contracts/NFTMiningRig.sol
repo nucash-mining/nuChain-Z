@@ -131,6 +131,31 @@ contract NFTMiningRig is ERC721, ERC721Enumerable, Ownable, ReentrancyGuard {
         require(_componentContracts.length > 0, "No components provided");
         require(_componentContracts.length <= 8, "Too many components");
 
+        // Validate required components
+        bool hasPCCase = false;
+        bool hasXL1Processor = false;
+        uint256 tx120Count = 0;
+        uint256 gp50Count = 0;
+        uint256 totalGPUs = 0;
+        
+        for (uint256 i = 0; i < _componentTokenIds.length; i++) {
+            if (_componentTokenIds[i] == 1) hasPCCase = true;
+            if (_componentTokenIds[i] == 3) hasXL1Processor = true;
+            if (_componentTokenIds[i] == 4) {
+                tx120Count++;
+                totalGPUs++;
+            }
+            if (_componentTokenIds[i] == 5) {
+                gp50Count++;
+                totalGPUs++;
+            }
+        }
+        
+        require(hasPCCase, "PC Case (Token ID 1) is required");
+        require(hasXL1Processor, "XL1 Processor (Token ID 3) is required");
+        require(totalGPUs >= 1 && totalGPUs <= 2, "Must have 1-2 Graphics Cards");
+        require(tx120Count <= 1, "Maximum 1 TX120 GPU allowed");
+        require(gp50Count <= 1, "Maximum 1 GP50 GPU allowed");
         // Verify Genesis Badge ownership if provided
         uint256 multiplier = 100; // Base 100% (no multiplier)
         if (_genesisBadgeId > 0) {
@@ -288,15 +313,16 @@ contract NFTMiningRig is ERC721, ERC721Enumerable, Ownable, ReentrancyGuard {
         address _contractAddress,
         uint256 _tokenId
     ) internal pure returns (ComponentData memory) {
-        // Real component data based on Altcoinchain Mining Game contracts
-        // Contract: 0xf9670e5D46834561813CA79854B3d7147BBbFfb2
+        // Real component data based on Mining Game contracts
+        // Altcoinchain: 0xf9670e5D46834561813CA79854B3d7147BBbFfb2
+        // Polygon: 0x970a8b10147e3459d3cbf56329b76ac18d329728
         
         ComponentData memory component;
         component.contractAddress = _contractAddress;
         component.tokenId = _tokenId;
         component.isActive = true;
         
-        // Map token IDs to actual Mining Game components
+        // Map token IDs to actual Mining Game components (same IDs on both chains)
         if (_tokenId == 1) { // PC Case
             component.componentType = ComponentType.CASE;
             component.hashPower = 0;
