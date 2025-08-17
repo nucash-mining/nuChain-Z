@@ -92,6 +92,43 @@ const MiningRigBuilder: React.FC = () => {
 
   // NFT Contract addresses from WATTxchange repository
   const getContractAddresses = (chainId: number) => {
+    if (chainId === 31337) { // Localhost
+      try {
+        // Try to load deployment info for localhost
+        const deploymentInfo = require('../../contracts/deployments/localhost-31337.json');
+        return {
+          nftContract: deploymentInfo.contracts.genesisBadge,
+          wattToken: deploymentInfo.contracts.wattToken,
+          nftStaking: deploymentInfo.contracts.genesisBadge, // Use same for testing
+          miningRigContract: deploymentInfo.contracts.nftMiningRig,
+          miningPoolContract: deploymentInfo.contracts.miningPoolOperator,
+          components: {
+            pcCase: { contract: deploymentInfo.contracts.genesisBadge, tokenId: 1 },
+            xl1Processor: { contract: deploymentInfo.contracts.genesisBadge, tokenId: 3 },
+            tx120Gpu: { contract: deploymentInfo.contracts.genesisBadge, tokenId: 4 },
+            gp50Gpu: { contract: deploymentInfo.contracts.genesisBadge, tokenId: 5 },
+            genesisBadge: { contract: deploymentInfo.contracts.genesisBadge, tokenId: 2 }
+          }
+        };
+      } catch (error) {
+        console.warn('Could not load localhost deployment info, using fallback addresses');
+        // Fallback for localhost when deployment file doesn't exist
+        return {
+          nftContract: '0x5FbDB2315678afecb367f032d93F642f64180aa3', // Default hardhat address
+          wattToken: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
+          nftStaking: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+          miningRigContract: '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0',
+          miningPoolContract: '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9',
+          components: {
+            pcCase: { contract: '0x5FbDB2315678afecb367f032d93F642f64180aa3', tokenId: 1 },
+            xl1Processor: { contract: '0x5FbDB2315678afecb367f032d93F642f64180aa3', tokenId: 3 },
+            tx120Gpu: { contract: '0x5FbDB2315678afecb367f032d93F642f64180aa3', tokenId: 4 },
+            gp50Gpu: { contract: '0x5FbDB2315678afecb367f032d93F642f64180aa3', tokenId: 5 },
+            genesisBadge: { contract: '0x5FbDB2315678afecb367f032d93F642f64180aa3', tokenId: 2 }
+          }
+        };
+      }
+    }
     if (chainId === 2330) { // Altcoinchain
       return {
         nftContract: '0xf9670e5D46834561813CA79854B3d7147BBbFfb2', // Mining Game NFTs
@@ -168,7 +205,7 @@ const MiningRigBuilder: React.FC = () => {
         
         // Initialize Mining Game contract for metadata
         const gameContract = new ethers.Contract(
-          network.chainId === 2330 ? '0xf9670e5D46834561813CA79854B3d7147BBbFfb2' : '0x970a8b10147e3459d3cbf56329b76ac18d329728',
+          addresses.nftContract,
           MINING_GAME_ABI,
           configuredProvider
         );
@@ -291,6 +328,20 @@ const MiningRigBuilder: React.FC = () => {
         try {
           // Get metadata URI from contract
           const metadataUri = await miningGameContract.uri(component.tokenId);
+          
+          // Skip metadata fetch for localhost/mock contracts
+          if (chainId === 31337) {
+            return {
+              ...component,
+              metadata: { name: component.name, description: `Mock ${component.type}` },
+              ipfsImage: component.image,
+              description: `Mock ${component.type} for testing`,
+              attributes: [
+                { trait_type: 'Type', value: component.type },
+                { trait_type: 'Rarity', value: component.rarity }
+              ]
+            };
+          }
           
           // Fetch metadata from IPFS
           const response = await fetch(metadataUri.replace('ipfs://', 'https://ipfs.io/ipfs/'));

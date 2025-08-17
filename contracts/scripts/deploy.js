@@ -42,6 +42,7 @@ async function main() {
     const mockGenesisBadge = await MockERC721.deploy("Genesis Badge", "GENESIS");
     await mockGenesisBadge.deployed();
     GENESIS_BADGE_ADDRESS = mockGenesisBadge.address;
+    MINING_GAME_BASE_CONTRACT = mockGenesisBadge.address;
     console.log("Mock Genesis Badge deployed to:", GENESIS_BADGE_ADDRESS);
   }
   
