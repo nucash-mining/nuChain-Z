@@ -1,8 +1,8 @@
 accounts:
   - name: alice
-    coins: ["20000token", "200000000stake"]
+    coins: ["20000z", "200000000stake"]
   - name: bob
-    coins: ["10000token", "100000000stake"]
+    coins: ["10000z", "100000000stake"]
 client:
   openapi:
     path: "docs/static/openapi.yml"
@@ -10,10 +10,23 @@ client:
     path: "vue"
 faucet:
   name: bob
-  coins: ["5token", "100000stake"]
+  coins: ["5z", "100000stake"]
 genesis:
   chain_id: "z-blockchain-1"
+  consensus_params:
+    block:
+      time_iota_ms: "200"
+      max_bytes: "22020096"
+      max_gas: "-1"
+  app_state:
+    utxo:
+      params:
+        block_reward: "50000000000000000"
+        halving_interval: 210000000
+        min_difficulty: 1000000
+        max_difficulty: 1000000000000
+        hardware_acceleration: true
+        supported_devices: ["nvidia-a100", "nvidia-h100", "xilinx-fpga"]
 validators:
   - name: alice
     bonded: "100000000stake"
-    home: "$HOME/.z-blockchain"

@@ -1,0 +1,86 @@
+syntax = "proto3";
+package zblockchain.utxo.v1;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "z-blockchain/x/utxo/types";
+
+// UTXO represents an unspent transaction output
+message UTXO {
+  string tx_hash = 1;
+  uint32 output_index = 2;
+  string address = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string amount = 4 [(cosmos_proto.scalar) = "cosmos.Int"];
+  int64 block_height = 5;
+  bool is_spent = 6;
+  bytes script_pubkey = 7;
+  int64 created_at = 8;
+}
+
+// Transaction input referencing a UTXO
+message TxInput {
+  string prev_tx_hash = 1;
+  uint32 prev_output_index = 2;
+  bytes script_sig = 3;
+  bytes witness = 4; // For SegWit-style transactions
+}
+
+// Transaction output creating a new UTXO
+message TxOutput {
+  string amount = 1 [(cosmos_proto.scalar) = "cosmos.Int"];
+  bytes script_pubkey = 2;
+  string address = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// UTXO Transaction
+message UTXOTransaction {
+  string tx_hash = 1;
+  repeated TxInput inputs = 2;
+  repeated TxOutput outputs = 3;
+  uint64 lock_time = 4;
+  int64 timestamp = 5;
+  string fee = 6 [(cosmos_proto.scalar) = "cosmos.Int"];
+  bytes zk_proof = 7; // zk-SNARK proof for privacy
+}
+
+// Shielded transaction for privacy (Zcash-style)
+message ShieldedTransaction {
+  string tx_hash = 1;
+  repeated bytes nullifiers = 2; // Prevent double spending
+  repeated bytes commitments = 3; // Hide amounts and recipients
+  bytes zk_proof = 4; // zk-SNARK proof
+  bytes encrypted_memo = 5; // 512-byte encrypted memo
+  string fee = 6 [(cosmos_proto.scalar) = "cosmos.Int"];
+  int64 timestamp = 7;
+}
+
+// Mining proof for hardware-accelerated zk-SNARK mining
+message MiningProof {
+  string miner_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  bytes zk_proof = 2; // Cysic-style zk-SNARK proof
+  bytes public_inputs = 3; // Block header, difficulty, etc.
+  uint64 nonce = 4;
+  uint64 difficulty = 5;
+  int64 timestamp = 6;
+  string hardware_id = 7; // GPU/FPGA identifier for acceleration
+}
+
+// Block header for UTXO blockchain
+message BlockHeader {
+  int64 height = 1;
+  string prev_block_hash = 2;
+  string merkle_root = 3;
+  int64 timestamp = 4;
+  uint64 difficulty = 5;
+  uint64 nonce = 6;
+  bytes zk_proof = 7; // Block validation proof
+  string miner = 8 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// UTXO set for efficient lookups
+message UTXOSet {
+  repeated UTXO utxos = 1;
+  int64 last_updated_height = 2;
+  string total_supply = 3 [(cosmos_proto.scalar) = "cosmos.Int"];
+}
