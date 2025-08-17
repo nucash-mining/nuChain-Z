@@ -924,7 +924,7 @@ const MiningRigBuilder: React.FC = () => {
             </div>
 
             {/* Stats Summary */}
-            <div className={\`${cardClass} rounded-2xl p-6 mb-6`}>
+            <div className={`${cardClass} rounded-2xl p-6 mb-6`}>
               <h3 className="text-xl font-bold mb-4">Rig Statistics</h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
