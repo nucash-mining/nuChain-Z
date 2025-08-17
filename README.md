@@ -48,33 +48,87 @@ z-blockchain-project/
 - Ignite CLI v0.27.1+
 - Git
 
-## Quick Start
+## 🚀 Quick Start
 
-1. **Clone and Setup**
+1. **Installation**
    ```bash
-   git clone <repository-url>
-   cd z-blockchain-project
    chmod +x scripts/setup.sh
    ./scripts/setup.sh
    ```
 
-2. **Initialize Chains**
+2. **Deploy Smart Contracts**
    ```bash
-   # Z Blockchain
-   cd z-blockchain
-   ignite chain serve
-
-   # nuChain (in new terminal)
-   cd nuchain
-   ignite chain serve
-   ```
-
-3. **Start Wallet**
-   ```bash
-   cd z-core-wallet
+   cd contracts
    npm install
-   npm start
+   
+   # Deploy to Altcoinchain
+   npm run deploy:altcoinchain
+   
+   # Deploy to Polygon
+   npm run deploy:polygon
    ```
+
+3. **Start Frontend**
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+4. **Initialize Blockchains**
+   ```bash
+   # Start nuChain L2
+   ./scripts/setup-nuchain.sh
+   
+   # Start zChain UTXO sidechain
+   ./scripts/setup-zchain.sh
+   ```
+
+## 🎮 **NFT Mining Rig System**
+
+### **Smart Contracts**
+- **NFTMiningRig.sol**: Creates mining rig NFTs from Mining Game components
+- **MiningPoolOperator.sol**: Manages mining pools with 100,000 WATT stake requirement
+- **LayerZero Integration**: Cross-chain messaging for reward distribution
+
+### **Frontend Components**
+- **MiningRigBuilder**: Configure mining rigs from NFT components
+- **MiningPoolDashboard**: Manage mining pools and view statistics
+- **WATT Staking**: Stake powered-off rigs to earn WATT rewards
+
+### **Key Features**
+- Mining rig NFTs combine Mining Game component NFTs
+- Genesis Badge NFT multipliers (110%-200% hash power boost)
+- Pool operators stake 100,000 WATT tokens (no mining fees)
+- Miners pay WATT according to their rig's power consumption
+- Cross-chain reward distribution via LayerZero
+
+## 🏗️ System Overview
+
+### Z Blockchain
+- **UTXO Model**: Bitcoin-style transaction processing
+- **zk-SNARK Mining**: Privacy-preserving proof-of-work
+- **Fast Blocks**: 0.5-second confirmation times
+- **Shielded Transfers**: Optional privacy with encrypted memos
+
+### nuChain L2
+- **Cosmos SDK**: Built on proven blockchain framework
+- **zk-Rollup**: Scalable Layer 2 with zk-proof batching
+- **Altcoinchain Settlement**: Secure L1 finality
+- **Sonic Validation**: Professional validator network
+
+### Cross-chain Features
+- **LayerZero Bridge**: Seamless Z ↔ NU token transfers
+- **Unified Mining**: Mine both chains simultaneously
+- **Shared Security**: Cross-chain validation and consensus
+- **Exchange**: WATTxchange wBTC ↔ wXMR atomic swaps
+- **Mining Pools**: Shared mining operations across both chains
+- **Hardware Acceleration**: GPU/FPGA support for competitive mining
+
+### NFT Mining Game Integration
+- **Component NFTs**: CPU, GPU, Memory, Storage, etc. from Mining Game
+- **Hash Power Calculation**: Based on component specifications
+- **WATT Consumption**: Power cost per block for each component
+- **Genesis Badge Multipliers**: Rare badges provide hash power bonuses
 
 ## Development Guide
 
