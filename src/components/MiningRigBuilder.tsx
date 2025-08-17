@@ -112,6 +112,10 @@ const MiningRigBuilder: React.FC = () => {
   const [showNFTStaking, setShowNFTStaking] = useState(false);
   const [selectedStakingNFTs, setSelectedStakingNFTs] = useState<number[]>([]);
   const [stakingRewards, setStakingRewards] = useState<Record<number, number>>({});
+  const [selectedPool, setSelectedPool] = useState('');
+  const [selectedChain, setSelectedChain] = useState('nuchain');
+  const [showPoolConnection, setShowPoolConnection] = useState(false);
+  const [selectedRigForPool, setSelectedRigForPool] = useState<any>(null);
   const [poolFormData, setPoolFormData] = useState({
     poolName: '',
     domainName: '',
