@@ -110,8 +110,9 @@ const MiningRigBuilder: React.FC = () => {
   const [showContractModal, setShowContractModal] = useState(false);
   const [rigConfiguration, setRigConfiguration] = useState({
     name: '',
-    nuChainAddress: '',
+    payoutAddress: '',
     wattAllowance: '',
+    stakingAddress: ''
   });
   const [savedMiningRigs, setSavedMiningRigs] = useState<SavedMiningRig[]>([]);
   const [deployedPools, setDeployedPools] = useState<MiningPool[]>([]);
@@ -329,6 +330,12 @@ const MiningRigBuilder: React.FC = () => {
       loadStakingRewards();
     }
   }, [selectedNetwork, isConnected, account]);
+
+  useEffect(() => {
+    calculateTotalStats();
+    loadSavedMiningRigs();
+    loadDeployedPools();
+  }, [selectedComponents]);
 
   const checkConnection = async () => {
     try {
