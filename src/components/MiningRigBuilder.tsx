@@ -668,24 +668,6 @@ const MiningRigBuilder: React.FC = () => {
       <img
         src={image}
         alt={component.name}
-    // Check GPU selection limits
-    const currentGPUs = selectedComponents.filter(c => [4, 5].includes(c.id));
-    const isGPU = [4, 5].includes(component.id);
-    
-    if (isGPU && !component.isSelected && currentGPUs.length >= 2) {
-      toast.error('Maximum 2 GPUs allowed per mining rig');
-      return;
-    }
-    
-    // Check for duplicate GPU types
-    if (isGPU && !component.isSelected) {
-      const sameTypeGPU = currentGPUs.find(gpu => gpu.id === component.id);
-      if (sameTypeGPU) {
-        toast.error(`Only 1 ${component.name} allowed per mining rig`);
-        return;
-      }
-    }
-    
         className="w-full h-48 object-cover rounded-lg"
         onError={(e) => {
           const target = e.target as HTMLImageElement;
@@ -740,7 +722,7 @@ const MiningRigBuilder: React.FC = () => {
         {/* Network Selection & Wallet */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-8 space-y-4 md:space-y-0">
           <div className="flex flex-wrap gap-4">
-            {Object.entries(NETWORKS).map(([key, network]) => (
+          <div className="flex bg-gray-800 rounded-lg p-1 space-x-1">
               <button
                 key={key}
                 onClick={() => switchNetwork(key)}
@@ -751,6 +733,16 @@ const MiningRigBuilder: React.FC = () => {
                 }`}
               >
                 {network.name}
+            <button
+              onClick={() => setActiveTab('manage')}
+              className={`px-6 py-3 rounded-md font-semibold transition-all ${
+                activeTab === 'manage'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-300 hover:text-white'
+              }`}
+            >
+              Manage Rigs
+            </button>
               </button>
             ))}
             
