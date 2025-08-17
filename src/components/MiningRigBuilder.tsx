@@ -109,6 +109,9 @@ const MiningRigBuilder: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showPoolDeployment, setShowPoolDeployment] = useState(false);
+  const [showNFTStaking, setShowNFTStaking] = useState(false);
+  const [selectedStakingNFTs, setSelectedStakingNFTs] = useState<number[]>([]);
+  const [stakingRewards, setStakingRewards] = useState<Record<number, number>>({});
   const [poolFormData, setPoolFormData] = useState({
     poolName: '',
     domainName: '',
@@ -301,6 +304,7 @@ const MiningRigBuilder: React.FC = () => {
     if (isConnected) {
       loadWattBalance();
       loadNFTBalances();
+      loadStakingRewards();
     }
   }, [selectedNetwork, isConnected, account]);
 
@@ -455,6 +459,78 @@ const MiningRigBuilder: React.FC = () => {
         balance: 0
       }));
       setAvailableComponents(updatedComponents);
+    }
+  };
+
+  const loadStakingRewards = async () => {
+    if (!isConnected || !account) return;
+
+    try {
+      const network = NETWORKS[selectedNetwork];
+      if (network.stakingContract === '0x0000000000000000000000000000000000000000') {
+        return;
+      }
+      
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const stakingContract = new ethers.Contract(
+        network.stakingContract,
+        ['function pendingRewards(address, uint256) view returns (uint256)'],
+        provider
+      );
+
+      const rewards: Record<number, number> = {};
+      for (const component of availableComponents) {
+        try {
+          const pending = await stakingContract.pendingRewards(account, component.id);
+          rewards[component.id] = parseFloat(ethers.utils.formatEther(pending));
+        } catch (error) {
+          rewards[component.id] = 0;
+        }
+      }
+      setStakingRewards(rewards);
+    } catch (error) {
+      console.warn('Error loading staking rewards:', error);
+    }
+  };
+
+  const stakeNFTs = async () => {
+    if (selectedStakingNFTs.length === 0) {
+      toast.error('Please select NFTs to stake');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Simulate staking transaction
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      toast.success(`Staked ${selectedStakingNFTs.length} NFTs successfully!`);
+      setSelectedStakingNFTs([]);
+      loadStakingRewards();
+    } catch (error) {
+      console.error('Error staking NFTs:', error);
+      toast.error('Failed to stake NFTs');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const claimRewards = async (componentId: number) => {
+    setIsLoading(true);
+    try {
+      // Simulate claiming rewards
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const reward = stakingRewards[componentId] || 0;
+      toast.success(`Claimed ${reward.toFixed(4)} WATT rewards!`);
+      
+      // Reset rewards for this component
+      setStakingRewards(prev => ({ ...prev, [componentId]: 0 }));
+    } catch (error) {
+      console.error('Error claiming rewards:', error);
+      toast.error('Failed to claim rewards');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -645,7 +721,7 @@ const MiningRigBuilder: React.FC = () => {
 
         {/* Network Selection & Wallet */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-8 space-y-4 md:space-y-0">
-          <div className="flex space-x-4">
+          <div className="flex flex-wrap gap-4">
             {Object.entries(NETWORKS).map(([key, network]) => (
               <button
                 key={key}
@@ -659,6 +735,23 @@ const MiningRigBuilder: React.FC = () => {
                 {network.name}
               </button>
             ))}
+            
+            {/* Action Buttons */}
+            <button
+              onClick={() => setShowNFTStaking(true)}
+              className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 px-6 py-3 rounded-lg font-semibold transition-all"
+            >
+              Stake Mining Game NFTs
+            </button>
+            
+            {(selectedNetwork === 'altcoinchain' || selectedNetwork === 'polygon') && (
+              <button
+                onClick={() => setShowPoolDeployment(true)}
+                className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 px-6 py-3 rounded-lg font-semibold transition-all"
+              >
+                Deploy Mining Pool
+              </button>
+            )}
           </div>
 
           <div className="flex items-center space-x-4">
@@ -874,6 +967,229 @@ const MiningRigBuilder: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* NFT Staking Modal */}
+      <AnimatePresence>
+        {showNFTStaking && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            onClick={() => setShowNFTStaking(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-black border border-green-500/30 rounded-2xl p-8 max-w-7xl w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center space-x-4">
+                  <img 
+                    src={WATT_LOGO} 
+                    alt="WATT" 
+                    className="w-8 h-8"
+                  />
+                  <div>
+                    <h2 className="text-3xl font-bold text-white">NFT Staking</h2>
+                    <p className="text-gray-400">Stake your Mining Game NFTs to earn WATT tokens</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowNFTStaking(false)}
+                  className="text-gray-400 hover:text-white transition-colors text-2xl"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Navigation Tabs */}
+              <div className="flex space-x-8 mb-8 border-b border-gray-700">
+                <button className="text-green-400 border-b-2 border-green-400 pb-2 font-semibold">
+                  Inventory
+                </button>
+                <button className="text-gray-400 hover:text-white pb-2 transition-colors">
+                  NFT-staking
+                </button>
+                <button className="text-gray-400 hover:text-white pb-2 transition-colors">
+                  Token-staking
+                </button>
+                <button className="text-gray-400 hover:text-white pb-2 transition-colors">
+                  Multi-send
+                </button>
+              </div>
+
+              {/* Inventory Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                {availableComponents.map((component) => {
+                  const isSelected = selectedStakingNFTs.includes(component.id);
+                  const dailyReward = stakingRewards[component.id] || 0;
+                  
+                  return (
+                    <motion.div
+                      key={component.id}
+                      whileHover={{ scale: 1.02 }}
+                      className={`bg-gray-900 border-2 rounded-2xl p-4 cursor-pointer transition-all ${
+                        isSelected 
+                          ? 'border-green-500 bg-green-500/10' 
+                          : 'border-green-500/30 hover:border-green-500/50'
+                      }`}
+                      onClick={() => {
+                        if (component.balance <= 0) {
+                          toast.error('You don\'t own this NFT');
+                          return;
+                        }
+                        
+                        if (isSelected) {
+                          setSelectedStakingNFTs(prev => prev.filter(id => id !== component.id));
+                        } else {
+                          setSelectedStakingNFTs(prev => [...prev, component.id]);
+                        }
+                      }}
+                    >
+                      {/* Refresh Button */}
+                      <div className="flex justify-end mb-2">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            loadStakingRewards();
+                          }}
+                          className="text-gray-400 hover:text-white transition-colors"
+                        >
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                          </svg>
+                        </button>
+                      </div>
+
+                      {/* 3D Model or Image */}
+                      <div className="relative mb-4">
+                        {component.animation_url?.includes('.glb') ? (
+                          <div className="w-full h-56 bg-gray-800 rounded-lg overflow-hidden">
+                            <ThreeDViewer
+                              modelUrl={component.animation_url}
+                              fallbackImage={component.image}
+                              className="w-full h-full"
+                            />
+                          </div>
+                        ) : component.animation_url?.includes('.mp4') ? (
+                          <video
+                            src={component.animation_url}
+                            autoPlay
+                            loop
+                            muted
+                            className="w-full h-56 object-cover rounded-lg bg-gray-800"
+                          />
+                        ) : (
+                          <img
+                            src={component.image}
+                            alt={component.name}
+                            className="w-full h-56 object-cover rounded-lg bg-gray-800"
+                          />
+                        )}
+                      </div>
+
+                      {/* Component Name */}
+                      <h3 className="text-white font-bold text-center mb-4 text-sm uppercase tracking-wider">
+                        {component.name}
+                      </h3>
+
+                      {/* Balance Display */}
+                      <div className="text-center mb-4">
+                        <div className="text-gray-400 text-xs mb-1">BALANCE</div>
+                        <div className="text-white font-bold text-lg">{component.balance}</div>
+                      </div>
+
+                      {/* Daily Rewards */}
+                      <div className="bg-gray-800 rounded-lg p-3 mb-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-green-400 text-xs font-bold">DAILY</div>
+                            <div className="text-white font-bold">{dailyReward.toFixed(2)}</div>
+                          </div>
+                          <img 
+                            src={WATT_LOGO} 
+                            alt="WATT" 
+                            className="w-10 h-10"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Action Button */}
+                      <div className="text-center">
+                        {component.balance > 0 ? (
+                          dailyReward > 0 ? (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                claimRewards(component.id);
+                              }}
+                              className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-all"
+                            >
+                              CLAIM
+                            </button>
+                          ) : (
+                            <button
+                              className={`w-full font-bold py-2 px-4 rounded-lg transition-all ${
+                                isSelected
+                                  ? 'bg-red-600 hover:bg-red-700 text-white'
+                                  : 'bg-green-600 hover:bg-green-700 text-white'
+                              }`}
+                            >
+                              {isSelected ? 'UNSTAKE' : 'STAKE'}
+                            </button>
+                          )
+                        ) : (
+                          <button className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-all">
+                            BUY
+                          </button>
+                        )}
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+
+              {/* Staking Actions */}
+              {selectedStakingNFTs.length > 0 && (
+                <div className="mt-8 bg-gray-900 border border-green-500/30 rounded-xl p-6">
+                  <h3 className="text-xl font-bold text-white mb-4">
+                    Selected NFTs for Staking ({selectedStakingNFTs.length})
+                  </h3>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {selectedStakingNFTs.map(id => {
+                      const component = availableComponents.find(c => c.id === id);
+                      return (
+                        <span key={id} className="bg-green-600/20 text-green-400 px-3 py-1 rounded-full text-sm">
+                          {component?.name}
+                        </span>
+                      );
+                    })}
+                  </div>
+                  <div className="flex space-x-4">
+                    <button
+                      onClick={() => setSelectedStakingNFTs([])}
+                      className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition-all"
+                    >
+                      Clear Selection
+                    </button>
+                    <button
+                      onClick={stakeNFTs}
+                      disabled={isLoading}
+                      className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition-all"
+                    >
+                      {isLoading ? 'Staking...' : `Stake ${selectedStakingNFTs.length} NFTs`}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Mining Pool Deployment Modal */}
       <AnimatePresence>
