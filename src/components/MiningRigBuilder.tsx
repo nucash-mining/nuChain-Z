@@ -368,7 +368,7 @@ const MiningRigBuilder: React.FC = () => {
       setSelectedNetwork(networkKey);
     } catch (error: any) {
       if (error.code === 4902) {
-        // Network not added to MetaMask
+        // Network not added to wallet
         try {
           const network = NETWORKS[networkKey];
           await window.ethereum.request({
@@ -393,7 +393,7 @@ const MiningRigBuilder: React.FC = () => {
     }
   };
 
-  const validateComponentAddition = (component: Component) => {
+  const validateComponent = (component: Component) => {
     // Validate required components
     const hasCase = selectedComponents.some(c => c.id === 1) || component.id === 1;
     const hasCPU = selectedComponents.some(c => c.id === 3) || component.id === 3;
@@ -595,8 +595,6 @@ const MiningRigBuilder: React.FC = () => {
       return;
     }
 
-    validateComponentAddition(component);
-
     setSelectedComponents([...selectedComponents, component]);
     toast.success(`Added ${component.name}`);
   };
@@ -620,25 +618,28 @@ const MiningRigBuilder: React.FC = () => {
   };
 
   const buildMiningRig = async () => {
-    if (selectedComponents.length === 0) {
-      toast.error('Please select at least one component');
+    // Validate required components
+    const hasCase = selectedComponents.some(c => c.id === 1);
+    const hasCPU = selectedComponents.some(c => c.id === 3);
+    const hasGPU = selectedComponents.some(c => c.id === 4 || c.id === 5);
+
+    if (!hasCase) {
+      toast.error('PC Case is required');
       return;
     }
 
-    setIsLoading(true);
-    try {
-      // Simulate building mining rig
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const stats = calculateTotalStats();
-      toast.success(`Mining rig built! Total hashpower: ${stats.totalHashpower}`);
-      setSelectedComponents([]);
-    } catch (error) {
-      console.error('Error building mining rig:', error);
-      toast.error('Failed to build mining rig');
-    } finally {
-      setIsLoading(false);
+    if (!hasCPU) {
+      toast.error('XL1 Processor is required');
+      return;
     }
+
+    if (!hasGPU) {
+      toast.error('At least one Graphics Card is required');
+      return;
+    }
+
+    // Show contract interaction modal
+    setShowContractModal(true);
   };
 
   const deployMiningPool = async () => {
@@ -652,8 +653,10 @@ const MiningRigBuilder: React.FC = () => {
       // Simulate pool deployment
       await new Promise(resolve => setTimeout(resolve, 3000));
       
-      toast.success(`Mining pool "${poolFormData.poolName}" deployed successfully!`);
+      toast.success('Mining pool deployed successfully!');
       setShowPoolDeployment(false);
+      
+      // Reset form
       setPoolFormData({
         poolName: '',
         domainName: '',
