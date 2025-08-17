@@ -195,7 +195,7 @@ const MiningRigBuilder: React.FC = () => {
       {
         id: 3,
         name: "XL1 Processor",
-        type: 'processor',
+        type: 'gpu',
         hashpower: 10,
         wattUsage: 2,
         stakeWeight: 9,
@@ -591,6 +591,8 @@ const MiningRigBuilder: React.FC = () => {
                   onClick={() => addComponent(component)}
                 >
                   <div className={component.id === 3 || component.id === 4 || component.id === 5 ? "transform scale-150 mb-8" : ""}>
+                  <div className={component.id === 2 ? "transform scale-125 -mt-8 -ml-16 mb-6" : 
+                                 component.id === 3 || component.id === 4 || component.id === 5 ? "transform scale-150 -mt-12 -ml-24 mb-8" : ""}>
                     {renderMedia(component)}
                   </div>
                   
