@@ -788,6 +788,17 @@ const MiningRigBuilder: React.FC = () => {
               {isLoading ? 'Building Rig...' : 'Build Mining Rig'}
             </button>
 
+            {/* Deploy Mining Pool Button */}
+            {(selectedNetwork === 'altcoinchain' || selectedNetwork === 'polygon') && (
+              <button
+                onClick={() => setShowPoolDeployment(true)}
+                disabled={!isConnected}
+                className="w-full mt-4 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed px-6 py-4 rounded-lg font-semibold text-lg transition-all"
+              >
+                Deploy Mining Pool
+              </button>
+            )}
+
             {/* Network Info */}
             <div className={`mt-6 ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white/5 border-white/10'} rounded-xl p-4 border`}>
               <h4 className="font-semibold mb-2">Network Information</h4>
