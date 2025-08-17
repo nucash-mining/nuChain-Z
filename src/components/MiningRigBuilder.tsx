@@ -883,7 +883,7 @@ const MiningRigBuilder: React.FC = () => {
 
           {/* Mining Rig Builder */}
           <div>
-            <div className={\`${cardClass} rounded-2xl p-6 mb-6`}>
+            <div className={`${cardClass} rounded-2xl p-6 mb-6`}>
               <h2 className="text-2xl font-bold mb-6">Your Mining Rig</h2>
               
               {selectedComponents.length === 0 ? (
