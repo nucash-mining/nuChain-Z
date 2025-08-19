@@ -381,6 +381,19 @@ if (require.main === module) {
     
     app.listen(3001, () => {
         console.log('🌐 Relayer API listening on port 3001');
+    }).on('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+            console.log('⚠️ Port 3001 in use, trying port 3003...');
+            app.listen(3003, () => {
+                console.log('🌐 Relayer API listening on port 3003');
+            }).on('error', (err) => {
+                console.error('❌ Failed to start API server:', err.message);
+                process.exit(1);
+            });
+        } else {
+            console.error('❌ Server error:', err.message);
+            process.exit(1);
+        }
     });
 }
 

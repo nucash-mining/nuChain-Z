@@ -5,7 +5,7 @@
   "main": "CrossChainRelayer.js",
   "scripts": {
     "start": "node CrossChainRelayer.js",
-    "dev": "nodemon CrossChainRelayer.js",
+    "dev": "nodemon CrossChainRelayer.js --ignore '*.log'",
     "test": "jest",
     "deploy:altcoinchain": "cd ../contracts && npx hardhat run scripts/deploy-oracle-altcoinchain.js --network altcoinchain",
     "deploy:polygon": "cd ../contracts && npx hardhat run scripts/deploy-oracle-polygon.js --network polygon",
