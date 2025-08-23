@@ -13,7 +13,7 @@ A comprehensive blockchain mining ecosystem featuring Z Blockchain (UTXO privacy
 
 ### **1. Clone and Setup**
 ```bash
-git clone https://github.com/your-username/z-blockchain-nuchain-mining
+git clone https://github.com/nucash-mining/nuchain-Z
 cd z-blockchain-nuchain-mining
 chmod +x scripts/setup.sh
 ./scripts/setup.sh
